@@ -3,37 +3,111 @@ export class MapAdminLayers {
     this.c = controller
   }
 
-  ensureMunicipalitiesLayer() {
-    const map = this.c.map
+  // ensureMunicipalitiesLayer() {
+  //   const map = this.c.map
 
-    // source vacío inicial
-    map.addSource("municipalities", {
-      type: "geojson",
-      data: { type: "FeatureCollection", features: [] },
-      promoteId: "municipality_code"
-    })
+  //   // source vacío inicial
+  //   map.addSource("municipalities", {
+  //     type: "geojson",
+  //     data: { type: "FeatureCollection", features: [] },
+  //     promoteId: "municipality_code"
+  //   })
 
-    // fill
-    map.addLayer({
-      id: "municipalities-fill",
-      type: "fill",
-      source: "municipalities",
-      paint: {
-        "fill-color": "#2bf89a",
-        "fill-opacity": 0.25
-      }
-    })
+  //   // fill
+  //   map.addLayer({
+  //     id: "municipalities-fill",
+  //     type: "fill",
+  //     source: "municipalities",
+  //     paint: {
+  //       "fill-color": "#2bf89a",
+  //       "fill-opacity": 0.25
+  //     }
+  //   })
 
-    // borde
-    map.addLayer({
-      id: "municipalities-outline",
-      type: "line",
-      source: "municipalities",
-      paint: {
-        "line-color": "#1cb66e",
-        "line-width": 2
-      }
-    })
+  //   // borde
+  //   map.addLayer({
+  //     id: "municipalities-outline",
+  //     type: "line",
+  //     source: "municipalities",
+  //     paint: {
+  //       "line-color": "#1cb66e",
+  //       "line-width": 2
+  //     }
+  //   })
+
+  //   if (!map.getLayer("municipalities-hover")) {
+  //     map.addLayer({
+  //       id: "municipalities-hover",
+  //       type: "fill",
+  //       source: "municipalities",
+  //       paint: {
+  //         "fill-color": "#2bf89a",
+  //         "fill-opacity": [
+  //           "case",
+  //           ["boolean", ["feature-state", "hover"], false],
+  //           0.3,
+  //           0
+  //         ]
+  //       }
+  //     })
+  //   }
+
+  //   this.setMunicipalitiesVisible(false)
+
+  //   if (!map.getSource("selected-municipality")) {
+  //     map.addSource("selected-municipality", {
+  //       type: "geojson",
+  //       data: { type: "FeatureCollection", features: [] }
+  //     })
+  //   }
+
+  //   if (!map.getLayer("selected-municipality-outline")) {
+  //     map.addLayer({
+  //       id: "selected-municipality-outline",
+  //       type: "line",
+  //       source: "selected-municipality",
+  //       paint: {
+  //         "line-color": "#111827",
+  //         "line-width": 2.5,
+  //         "line-opacity": 0.9,
+  //         "line-dasharray": [2, 2]
+  //       }
+  //     })
+  //   }
+  // }
+
+  ensureMunicipalitiesLayer(map = this.c.map) {
+    if (!map.getSource("municipalities")) {
+      map.addSource("municipalities", {
+        type: "geojson",
+        data: { type: "FeatureCollection", features: [] },
+        promoteId: "municipality_code"
+      })
+    }
+
+    if (!map.getLayer("municipalities-fill")) {
+      map.addLayer({
+        id: "municipalities-fill",
+        type: "fill",
+        source: "municipalities",
+        paint: {
+          "fill-color": "#2bf89a",
+          "fill-opacity": 0.25
+        }
+      })
+    }
+
+    if (!map.getLayer("municipalities-outline")) {
+      map.addLayer({
+        id: "municipalities-outline",
+        type: "line",
+        source: "municipalities",
+        paint: {
+          "line-color": "#1cb66e",
+          "line-width": 2
+        }
+      })
+    }
 
     if (!map.getLayer("municipalities-hover")) {
       map.addLayer({
@@ -52,7 +126,9 @@ export class MapAdminLayers {
       })
     }
 
-    this.setMunicipalitiesVisible(false)
+    ;["municipalities-fill", "municipalities-outline", "municipalities-hover"].forEach((id) => {
+      if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", "none")
+    })
 
     if (!map.getSource("selected-municipality")) {
       map.addSource("selected-municipality", {
@@ -225,5 +301,18 @@ export class MapAdminLayers {
     const src = this.c.map.getSource("selected-municipality")
     if (!src) return
     src.setData({ type: "FeatureCollection", features: [] })
+  }
+
+  async loadSelectedMunicipalityOutlineOn(map, munCode = this.c._selectedMunicipalityCode) {
+    if (!map || !munCode) return
+
+    this.ensureMunicipalitiesLayer(map)
+
+    const focus = await fetch(
+      `/municipalities/focus?municipality_code=${encodeURIComponent(munCode)}`
+    ).then(r => r.json())
+
+    const src = map.getSource("selected-municipality")
+    if (src) src.setData(focus.geometry)
   }
 }

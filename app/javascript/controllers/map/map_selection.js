@@ -1,6 +1,5 @@
 export class MapSelection {
   constructor(controller) {
-    // controller = instancia de map_controller (para acceder a this.map, ensureCellsLayer, bindCellsHoverTooltip, etc.)
     this.controller = controller
     this.map = controller.map
   }
@@ -8,8 +7,8 @@ export class MapSelection {
   onPickCellStart = () => {
     this.controller._pickCellMode = true
     this.controller.ensureCellsLayer()
-    this.controller.hover.bindCellsHoverTooltip()   // tooltip show_id
-    this.bindCellsPickClickOnce()  // click selecciona celda
+    this.controller.hover.bindCellsHoverTooltip()
+    this.bindCellsPickClickOnce()
   }
 
   onPickCellCancel = () => {
@@ -37,13 +36,11 @@ export class MapSelection {
         detail: { h3: h3, show_id: showId }
       }))
 
-      // desactivar modo selección
-      this._pickCellMode = false
+      this.controller._pickCellMode = false
     })
   }
 
   setCellSelected(h3) {
-    // limpiar anterior
     if (this._selectedCellId) {
       this.map.setFeatureState(
         { source: "cells", id: this._selectedCellId },
@@ -51,12 +48,22 @@ export class MapSelection {
       )
     }
 
-    // set nueva
     this._selectedCellId = h3
 
     this.map.setFeatureState(
       { source: "cells", id: h3 },
       { selected: true }
     )
+  }
+
+  clearCellSelected() {
+    if (!this._selectedCellId) return
+
+    this.map.setFeatureState(
+      { source: "cells", id: this._selectedCellId },
+      { selected: false }
+    )
+
+    this._selectedCellId = null
   }
 }

@@ -50,6 +50,11 @@ export function createPublishDelete(controller) {
         controller._selectedScenarioId = String(scenarioId)
         controller._selectedScenarioStatus = "published"
 
+        controller.closeLocator()
+
+        // 🧹 reset visual completo
+        controller.resetVisualizationStateAfterScenarioChange()
+
         // ✅ desbloquear selector
         if (controller.hasScenarioSelectTarget) controller.scenarioSelectTarget.disabled = false
 
@@ -101,8 +106,7 @@ export function createPublishDelete(controller) {
       }
 
       // limpiar mapa/capas
-      window.dispatchEvent(new CustomEvent("layer:cleared"))
-      controller.clearLayerButtonsUI()
+      controller.resetVisualizationStateAfterScenarioChange()
 
       // recargar escenarios de la comuna
       if (controller._selectedMunicipalityCode) {

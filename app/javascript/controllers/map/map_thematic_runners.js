@@ -10,16 +10,18 @@ export class MapThematicRunners {
 
     const inComparator = (this.c._uiMode === "comparador")
     const isDelta = (this.c._compareMode === "delta")
+    const isSlider = (this.c._compareMode === "slider")
+    const isSplit = (this.c._compareMode === "split")
+
+    // ✅ actualizar estado SIEMPRE antes de refrescar
+    this.c._selectedLayerType = "accessibility"
+    this.c._selectedAccessibilityMode = mode
+    this.c._selectedMetric = null
 
     this.c.ensureCellsLayer()
 
-    // ✅ comparador + delta => accessibility_delta
     if (inComparator && isDelta) {
       if (!this.c._scenarioAId || !this.c._scenarioBId) return
-
-      this.c._selectedLayerType = "accessibility"   // ✅ sigue siendo accesibilidad
-      this.c._selectedAccessibilityMode = mode
-      this.c._selectedMetric = null
 
       const url =
         `/cells/accessibility_delta?municipality_code=${encodeURIComponent(this.c._selectedMunicipalityCode)}` +
@@ -39,10 +41,15 @@ export class MapThematicRunners {
       return
     }
 
-    // ✅ modo normal
-    this.c._selectedLayerType = "accessibility"
-    this.c._selectedAccessibilityMode = mode
-    this.c._selectedMetric = null
+    if (inComparator && isSlider) {
+      this.c.compareSlider?.syncData()
+      return
+    }
+
+    if (inComparator && isSplit) {
+      this.c.compareSplit?.syncData()
+      return
+    }
 
     const scenarioId = this.c._selectedScenarioId
 

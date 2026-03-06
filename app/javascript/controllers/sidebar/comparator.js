@@ -50,10 +50,16 @@ export function createComparator(controller) {
       if (controller.hasLocateSectionTarget) controller.locateSectionTarget.hidden = true
       if (controller.hasLocatorPanelTarget) controller.locatorPanelTarget.hidden = true
 
-      if (this.hasDeleteScenarioBtnTarget) this.deleteScenarioBtnTarget.hidden = true
+      if (controller.hasDeleteScenarioBtnTarget) controller.deleteScenarioBtnTarget.hidden = true
       // ✅ exigir A y B antes de opportunity
 
       controller._compareMode = "delta"
+      const compareBtns = controller.element.querySelectorAll(".compare-modes__btn")
+      compareBtns.forEach(b => b.classList.remove("is-active"))
+
+      const deltaBtn = controller.element.querySelector('.compare-modes__btn[data-mode="delta"]')
+      if (deltaBtn) deltaBtn.classList.add("is-active")
+
       controller.syncComparatorGatingUI()
 
 
@@ -95,7 +101,8 @@ export function createComparator(controller) {
       // Limpia estado comparador para que no “contamine”
       controller._scenarioAId = null
       controller._scenarioBId = null
-      controller._compareMode = null
+      const compareBtns = controller.element.querySelectorAll(".compare-modes__btn")
+      compareBtns.forEach(b => b.classList.remove("is-active"))
 
       controller.syncScenarioActionsUI()     // restaura delete según isBase
       if (controller.hasOpportunitySelectTarget) controller.opportunitySelectTarget.disabled = false

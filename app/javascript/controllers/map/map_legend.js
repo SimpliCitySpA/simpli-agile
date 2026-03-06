@@ -78,18 +78,15 @@ export class MapLegend {
     const k = Number(klass)
     this.c._legendFocusClass = k
 
-    this.c.map.setPaintProperty("cells-fill", "fill-opacity", [
-      "case",
-      ["==", ["get", "class"], k],
-      0.80,
-      0
-    ])
+    this.c.map.setPaintProperty("cells-fill", "fill-opacity", this.focusedFillOpacityExpr(k))
   }
 
   clearClassFocus() {
     if (!this.c.map?.getLayer("cells-fill")) return
     this.c._legendFocusClass = null
-    this.c.map.setPaintProperty("cells-fill", "fill-opacity", 0.75)
+
+    // ✅ restaurar la regla base (class 0 transparente)
+    this.c.map.setPaintProperty("cells-fill", "fill-opacity", this.baseFillOpacityExpr())
   }
 
   bindHoverOnce() {
@@ -109,5 +106,27 @@ export class MapLegend {
       const stillInside = this.c.legendItemsTarget.contains(e.relatedTarget)
       if (!stillInside) this.clearClassFocus()
     })
+  }
+
+  baseFillOpacityExpr() {
+    // class 0 siempre transparente
+    return [
+      "case",
+      ["==", ["get", "class"], 0],
+      0,
+      0.75
+    ]
+  }
+
+  focusedFillOpacityExpr(k) {
+    // class 0 siempre transparente, aunque sea el foco
+    return [
+      "case",
+      ["==", ["get", "class"], 0],
+      0,
+      ["==", ["get", "class"], k],
+      0.80,
+      0
+    ]
   }
 }
