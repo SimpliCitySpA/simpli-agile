@@ -145,17 +145,19 @@ export function createOpportunitiesLayers(controller) {
       if (isAccessibility) {
         controller.accessibilityChoicesTarget.hidden = !isActive
 
-        // si se desactiva accesibilidad → limpiar sub-botones
-        if (!isActive) {
+        if (isActive) {
+          const walkBtn = controller.accessibilityChoicesTarget
+            ?.querySelector('.sidebar__subchoice-btn[data-mode="walk"]')
+
+          if (walkBtn) walkBtn.click()
+        } else {
           controller.accessibilityChoicesTarget
             .querySelectorAll(".sidebar__subchoice-btn")
             .forEach(b => b.classList.remove("is-active"))
         }
       } else {
-        // si se selecciona otra capa → ocultar accesibilidad
         controller.accessibilityChoicesTarget.hidden = true
 
-        // ✅ limpiar sub-botones siempre
         controller.accessibilityChoicesTarget
           .querySelectorAll(".sidebar__subchoice-btn")
           .forEach(b => b.classList.remove("is-active"))

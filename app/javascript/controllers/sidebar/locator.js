@@ -119,6 +119,7 @@ export function createLocator(controller) {
       const opportunityCode = controller.locatorOpportunitySelectTarget.value
       const units = Number(controller.unitsInputTarget.value)
       const areaPerUnit = Number(controller.areaPerUnitInputTarget.value)
+      const originScenarioId = controller._selectedScenarioId
 
       if (!name) return alert("Pon un nombre al proyecto.")
       if (!h3) return alert("Selecciona una celda.")
@@ -191,8 +192,23 @@ export function createLocator(controller) {
       controller.projectNameInputTarget.value = ""
       controller.unitsInputTarget.value = ""
       controller.areaPerUnitInputTarget.value = ""
+      controller.selectedCellH3Target.value = ""
+      controller.selectedCellDisplayTarget.value = ""
+
+      controller.locatorOpportunitySelectTarget.value = "Seleccionar oportunidad..."
+
+      window.dispatchEvent(new CustomEvent("cell:pick_cancel"))
+      window.dispatchEvent(new CustomEvent("cell:selection_clear"))
 
       await controller.refreshProjectsLists()
+
+      window.dispatchEvent(new CustomEvent("locator:opened", {
+        detail: {
+          municipality_code: controller._selectedMunicipalityCode,
+          base_scenario_id: originScenarioId,
+          draft_scenario_id: controller._draftScenarioId
+        }
+      }))
     }
   }
 }

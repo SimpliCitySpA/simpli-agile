@@ -503,12 +503,12 @@ class CellsController < ApplicationController
 
     features = rows.map do |r|
       v = r["value"].to_f
-      klass = bin_class(v, breaks)
-        # if v <= 0 || breaks.uniq.length <= 1
-        #   0
-        # else
-        #   jenks_class(v, breaks)
-        # end
+      klass =
+        if v <= 0 || breaks.uniq.length <= 1
+          0
+        else
+          bin_class(v, breaks)
+        end
 
       {
         type: "Feature",

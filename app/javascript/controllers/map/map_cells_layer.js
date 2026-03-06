@@ -3,8 +3,7 @@ export class MapCellsLayer {
     this.c = controller
   }
 
-  setVisible = (visible) => {
-    const map = this.c.map
+  setVisible = (visible, map = this.c.map) => {
     if (!map) return
 
     const visibility = visible ? "visible" : "none"
@@ -18,8 +17,7 @@ export class MapCellsLayer {
     }
   }
 
-  ensure = () => {
-    const map = this.c.map
+  ensure = (map = this.c.map) => {
     if (!map) return
 
     if (!map.getSource("cells")) {
@@ -36,17 +34,21 @@ export class MapCellsLayer {
         type: "fill",
         source: "cells",
         paint: {
-          "fill-opacity": 0.75,
           "fill-color": [
             "match",
             ["get", "class"],
-            0, "#e5e7eb",
             1, "#dbeafe",
             2, "#93c5fd",
             3, "#3b82f6",
             4, "#1d4ed8",
             5, "#0b3aa4",
             "#f3f4f6"
+          ],
+          "fill-opacity": [
+            "case",
+            ["==", ["get", "class"], 0],
+            0,
+            0.75
           ]
         }
       })

@@ -8,10 +8,23 @@ import { MapAdminLayers } from "./map/map_admin_layers"
 import { MapLocator } from "./map/map_locator"
 import { MapStateEvents } from "./map/map_state_events"
 import { MapThematicRunners } from "./map/map_thematic_runners"
+import { MapCompareSlider } from "./map/map_compare_slider"
+import { MapCompareSplit } from "./map/map_compare_split"
 
 export default class extends Controller {
   static values = { token: String }
-  static targets = ["mapContainer", "legendPanel", "legendItems", "legendBtn"]
+  static targets = [
+    "mapContainer",
+    "legendPanel",
+    "legendItems",
+    "legendBtn",
+    "compareContainer",
+    "compareLeft",
+    "compareRight",
+    "splitContainer",
+    "splitTop",
+    "splitBottom"
+  ]
 
   connect() {
     console.log("✅ map_controller connect()", this.tokenValue?.slice(0, 8))
@@ -52,6 +65,8 @@ export default class extends Controller {
       this.locator = new MapLocator(this)
       this.stateEvents = new MapStateEvents(this)
       this.thematicRunner = new MapThematicRunners(this)
+      this.compareSlider = new MapCompareSlider(this)
+      this.compareSplit = new MapCompareSplit(this)
 
       this.adminLayers.ensureMunicipalitiesLayer()
       this.hover.bindMunicipalitiesHoverTooltip()
@@ -62,7 +77,7 @@ export default class extends Controller {
       window.addEventListener("region:selected", this.onRegionSelected)
       window.addEventListener("municipality:selected", this.onMunicipalitySelected)
       window.addEventListener("municipality:cleared", this.onMunicipalityCleared)
-      window.addEventListener("layer:selected", this.thematicLayer.onLayerSelected)
+      window.addEventListener("layer:selected", this.onLayerSelected)
       window.addEventListener("opportunity:selected", this.onOpportunitySelected)
       window.addEventListener("accessibility:mode_selected", this.onAccessibilityModeSelected)
       window.addEventListener("layer:cleared", this.onLayerCleared)
@@ -74,6 +89,7 @@ export default class extends Controller {
       window.addEventListener("comparison:context_changed", this.onComparisonContextChanged)
       window.addEventListener("locator:opened", this.onLocatorOpened)
       window.addEventListener("locator:closed", this.onLocatorClosed)
+      window.addEventListener("cell:selection_clear", this.onCellSelectionClear)
     })
   }
 
@@ -81,7 +97,7 @@ export default class extends Controller {
     window.removeEventListener("region:selected", this.onRegionSelected)
     window.removeEventListener("municipality:selected", this.onMunicipalitySelected)
     window.removeEventListener("municipality:cleared", this.onMunicipalityCleared)
-    window.removeEventListener("layer:selected", this.thematicLayer?.onLayerSelected)
+    window.removeEventListener("layer:selected", this.onLayerSelected)
     window.removeEventListener("opportunity:selected", this.onOpportunitySelected)
     window.removeEventListener("accessibility:mode_selected", this.onAccessibilityModeSelected)
     window.removeEventListener("layer:cleared", this.onLayerCleared)
@@ -93,6 +109,7 @@ export default class extends Controller {
     window.removeEventListener("comparison:context_changed", this.onComparisonContextChanged)
     window.removeEventListener("locator:opened", this.onLocatorOpened)
     window.removeEventListener("locator:closed", this.onLocatorClosed)
+    window.removeEventListener("cell:selection_clear", this.onCellSelectionClear)
   }
 
   onRegionSelected = (e) => this.adminLayers.onRegionSelected(e)
@@ -120,4 +137,27 @@ export default class extends Controller {
 
   onAccessibilityModeSelected = (e) => this.thematicRunner.onAccessibilityModeSelected(e)
   onComparisonDeltaSelected = (e) => this.thematicRunner.onComparisonDeltaSelected(e)
+
+  onCellSelectionClear = () => this.selection?.clearCellSelected()
+
+  syncCompareIfNeeded = () => {
+    if (this._uiMode !== "comparador") return
+
+    if (this._compareMode === "slider") {
+      this.compareSlider?.syncData()
+      return
+    }
+
+    if (this._compareMode === "split") {
+      this.compareSplit?.syncData()
+    }
+  }
+
+  onLayerSelected = (e) => {
+    // 1) Actualiza el estado interno normal del mapa
+    this.thematicLayer.onLayerSelected(e)
+
+    // 2) Si estoy en comparador, refresca el renderer correcto
+    this.syncCompareIfNeeded()
+  }
 }

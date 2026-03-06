@@ -7,7 +7,18 @@ export class MapThematic {
   onLayerSelected = (event) => {
     const metric = event.detail.metric
 
+    // ⚠️ actualizar estado SIEMPRE
     this.setSelectedMetric(metric)
+
+    if (this.ctx._uiMode === "comparador" && this.ctx._compareMode === "slider") {
+      this.ctx.compareSlider?.syncData()
+      return
+    }
+
+    if (this.ctx._uiMode === "comparador" && this.ctx._compareMode === "split") {
+      this.ctx.compareSplit?.syncData()
+      return
+    }
 
     if (!this.canLoad()) return
 
@@ -17,7 +28,6 @@ export class MapThematic {
       opportunityCode: this.ctx._selectedOpportunityCode,
       metric: metric
     })
-
   }
 
   setSelectedMetric(metric) {

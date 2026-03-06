@@ -14,5 +14,5 @@ class Region < ApplicationRecord
         name: self.name
       }
     }
-end
+  end
 end

@@ -305,4 +305,35 @@ export default class extends Controller {
     // avisa al mapa que cierre locator (restauración del snapshot del mapa)
     window.dispatchEvent(new CustomEvent("locator:closed"))
   }
+
+  resetVisualizationStateAfterScenarioChange() {
+    // oportunidad
+    if (this.hasOpportunitySelectTarget) {
+      this.opportunitySelectTarget.disabled = false
+      this.opportunitySelectTarget.value = "Seleccionar oportunidad..."
+    }
+    this._selectedOpportunityCode = null
+
+    // capas
+    window.dispatchEvent(new CustomEvent("layer:cleared"))
+    this.clearLayerButtonsUI()
+    if (this.hasLayerSectionTarget) this.layerSectionTarget.hidden = true
+
+    // accesibilidad subopciones
+    if (this.hasAccessibilityChoicesTarget) {
+      this.accessibilityChoicesTarget.hidden = true
+      this.accessibilityChoicesTarget
+        .querySelectorAll(".sidebar__subchoice-btn")
+        .forEach(b => b.classList.remove("is-active"))
+    }
+
+    // comparador
+    this._scenarioAId = null
+    this._scenarioBId = null
+    this._compareMode = null
+
+    // locator snapshot viejo
+    this._locatorPrev = null
+    this._locatorSidebarPrev = null
+  }
 }

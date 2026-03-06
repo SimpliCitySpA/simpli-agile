@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "mapbox-gl-compare": "^0.4.2"
+  }
+}
