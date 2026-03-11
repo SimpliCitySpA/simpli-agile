@@ -171,15 +171,50 @@ export function createProjectLists(controller) {
 
             window.dispatchEvent(new CustomEvent("project:hover_end"))
 
-            await this.refreshProjectsLists()
+            if (data.draft_deleted) {
 
-            window.dispatchEvent(new CustomEvent("locator:opened", {
-              detail: {
-                municipality_code: controller._selectedMunicipalityCode,
-                base_scenario_id: controller._selectedScenarioId,
-                draft_scenario_id: controller._draftScenarioId
-              }
-            }))
+              const parentId = String(data.parent_scenario_id)
+
+              controller._selectedScenarioId = parentId
+              controller._selectedScenarioStatus = "published"
+              controller._draftScenarioId = null
+
+              await controller.scenarios.loadScenariosIntoSelect(
+                controller._selectedMunicipalityCode,
+                parentId
+              )
+
+              window.dispatchEvent(new CustomEvent("scenario:selected", {
+                detail: {
+                  scenario_id: parentId,
+                  status: "published"
+                }
+              }))
+
+              // 🔄 forzar refresh del mapa con el escenario padre
+              window.dispatchEvent(new CustomEvent("locator:opened", {
+                detail: {
+                  municipality_code: controller._selectedMunicipalityCode,
+                  base_scenario_id: parentId,
+                  draft_scenario_id: null
+                }
+              }))
+
+              await this.refreshProjectsLists()
+
+            } else {
+
+              await this.refreshProjectsLists()
+
+              window.dispatchEvent(new CustomEvent("locator:opened", {
+                detail: {
+                  municipality_code: controller._selectedMunicipalityCode,
+                  base_scenario_id: controller._selectedScenarioId,
+                  draft_scenario_id: controller._draftScenarioId
+                }
+              }))
+
+            }
           } catch (err) {
             console.error(err)
             alert("Error eliminando el proyecto.")

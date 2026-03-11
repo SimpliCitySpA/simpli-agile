@@ -50,18 +50,36 @@ class ProjectsController < ApplicationController
 
   def destroy
     project = Project.joins(:scenario).find(params[:id])
+    scenario = project.scenario
 
-    unless project.scenario.user_id == current_user.id
+    unless scenario.user_id == current_user.id
       return render json: { error: "No autorizado" }, status: :forbidden
     end
 
-    if project.scenario.status == "base"
+    if scenario.status == "base"
       return render json: { error: "No se puede modificar el escenario base" }, status: :unprocessable_entity
     end
 
     project.destroy!
 
-    render json: { ok: true, id: project.id }
+    # 👇 revisar si el draft quedó vacío
+    if scenario.status == "draft" && scenario.projects.count == 0
+      parent_id = scenario.parent_id
+      scenario.destroy!
+
+      return render json: {
+        ok: true,
+        deleted_project_id: project.id,
+        draft_deleted: true,
+        parent_scenario_id: parent_id
+      }
+    end
+
+    render json: {
+      ok: true,
+      deleted_project_id: project.id,
+      draft_deleted: false
+    }
   end
 
 
