@@ -44,9 +44,9 @@ export function createLocator(controller) {
           controller.opportunitySelectTarget.value = "Seleccionar oportunidad..."
           controller.opportunitySelectTarget.disabled = true
         }
+        if (controller.hasScenarioSelectTarget) controller.scenarioSelectTarget.disabled = true
         controller.clearLayerButtonsUI()
         controller.element.querySelectorAll(".sidebar__layer-btn").forEach(b => {
-          // si son <button>, funciona perfecto:
           b.disabled = true
           b.classList.add("is-disabled")
         })
@@ -64,6 +64,7 @@ export function createLocator(controller) {
         controller.restoreSidebarAfterClose()
         // ✅ re-enable
         if (controller.hasOpportunitySelectTarget) controller.opportunitySelectTarget.disabled = false
+        if (controller.hasScenarioSelectTarget) controller.scenarioSelectTarget.disabled = false
         controller.element.querySelectorAll(".sidebar__layer-btn").forEach(b => {
           b.disabled = false
           b.classList.remove("is-disabled")
@@ -114,12 +115,16 @@ export function createLocator(controller) {
     },
 
     async addProject() {
+      const scenarioId = controller._selectedScenarioId
+
+      if (!scenarioId) return alert("Selecciona un escenario primero.")
+      if (controller._selectedScenarioIsBase) return alert("No puedes agregar proyectos al escenario base. Crea un escenario propio con el botón '+'.")
+
       const name = controller.projectNameInputTarget.value?.trim()
       const h3 = controller.selectedCellH3Target.value
       const opportunityCode = controller.locatorOpportunitySelectTarget.value
       const units = Number(controller.unitsInputTarget.value)
       const areaPerUnit = Number(controller.areaPerUnitInputTarget.value)
-      const originScenarioId = controller._selectedScenarioId
 
       if (!name) return alert("Pon un nombre al proyecto.")
       if (!h3) return alert("Selecciona una celda.")
@@ -129,44 +134,6 @@ export function createLocator(controller) {
 
       const csrf = document.querySelector('meta[name="csrf-token"]').content
 
-      // ✅ asegurar draft (server maneja find_or_create)
-      const draftRes = await fetch("/scenarios/ensure_draft", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },
-        body: JSON.stringify({
-          municipality_code: controller._selectedMunicipalityCode,
-          base_scenario_id: controller._selectedScenarioId
-        })
-      })
-
-      const draftJson = await draftRes.json()
-      const scenarioId = draftJson.scenario_id
-      controller._draftScenarioId = String(scenarioId)
-
-      // 🔥 1) Cambiar escenario activo al draft recién creado
-      controller._selectedScenarioId = String(scenarioId)
-      controller._selectedScenarioStatus = "draft"
-
-      // 🔥 recargar selector seleccionando el draft
-      await controller.scenarios.loadScenariosIntoSelect(
-        controller._selectedMunicipalityCode,
-        scenarioId
-      )
-
-      // 🔥 bloquear selector
-      if (controller.hasScenarioSelectTarget) {
-        controller.scenarioSelectTarget.disabled = true
-}
-
-      // 🔥 3) Notificar al mapa que cambió el escenario
-      window.dispatchEvent(new CustomEvent("scenario:selected", {
-        detail: {
-          scenario_id: String(scenarioId),
-          status: "draft"
-        }
-      }))
-
-      // 3) crear project
       const resp = await fetch("/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json", "X-CSRF-Token": csrf },
@@ -194,7 +161,6 @@ export function createLocator(controller) {
       controller.areaPerUnitInputTarget.value = ""
       controller.selectedCellH3Target.value = ""
       controller.selectedCellDisplayTarget.value = ""
-
       controller.locatorOpportunitySelectTarget.value = "Seleccionar oportunidad..."
 
       window.dispatchEvent(new CustomEvent("cell:pick_cancel"))
@@ -205,8 +171,8 @@ export function createLocator(controller) {
       window.dispatchEvent(new CustomEvent("locator:opened", {
         detail: {
           municipality_code: controller._selectedMunicipalityCode,
-          base_scenario_id: originScenarioId,
-          draft_scenario_id: controller._draftScenarioId
+          base_scenario_id: scenarioId,
+          draft_scenario_id: scenarioId
         }
       }))
     }

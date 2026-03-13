@@ -74,18 +74,5 @@ export function createUIState(controller) {
       }
     },
 
-    openPublishModal() {
-      console.log("✅ openPublishModal() fired", controller._draftScenarioId)
-      if (!controller._draftScenarioId) return alert("No hay borrador para guardar.")
-      controller.publishNameInputTarget.value = ""
-      controller.publishModalTarget.hidden = false
-
-      // opcional UX: autofocus
-      setTimeout(() => controller.publishNameInputTarget.focus(), 0)
-    },
-
-    closePublishModal() {
-      controller.publishModalTarget.hidden = true
-    },
   }
 }

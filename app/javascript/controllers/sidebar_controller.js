@@ -46,6 +46,8 @@ export default class extends Controller {
     "compareModeSection",
     "scenarioASelect",
     "scenarioBSelect",
+    "saveScenarioBtn",
+    "scenarioParentDisplay",
   ]
 
   connect() {
@@ -100,8 +102,9 @@ export default class extends Controller {
   clearLayerButtonsUI() { return this.ui.clearLayerButtonsUI() }
   applyOpportunityCategory(category) { return this.ui.applyOpportunityCategory(category) }
 
-  openPublishModal() { return this.ui.openPublishModal() }
-  closePublishModal() { return this.ui.closePublishModal() }
+  openCreateScenarioModal() { return this.scenarios.openCreateScenarioModal() }
+  closePublishModal() { return this.scenarios.closeCreateScenarioModal() }
+  confirmCreateScenario() { return this.scenarios.confirmCreateScenario() }
 
   loadScenariosIntoSelect(munCode) { return this.scenarios.loadScenariosIntoSelect(munCode) }
   scenarioChanged(e) { return this.scenarios.scenarioChanged(e) }
@@ -126,7 +129,7 @@ export default class extends Controller {
 
   refreshProjectsLists() { return this.projectLists.refreshProjectsLists() }
 
-  confirmPublishScenario() { return this.publishDelete.confirmPublishScenario() }
+  recalculateAccessibilities() { return this.publishDelete.recalculateAccessibilities() }
   deleteScenario() { return this.publishDelete.deleteScenario() }
 
   onUIModeChanged = (e) => { return this.comparator.onUIModeChanged(e) }
@@ -245,16 +248,16 @@ export default class extends Controller {
   }
 
   syncScenarioActionsUI() {
-    if (this.hasDeleteScenarioBtnTarget) {
-      // ✅ nunca en comparador
-      if (this._uiMode === "comparador") {
-        this.deleteScenarioBtnTarget.hidden = true
-        return
-      }
+    const inComparator = (this._uiMode === "comparador")
+    const opt = this.scenarioSelectTarget?.selectedOptions?.[0]
+    const isBase = (opt?.dataset?.isBase === "1")
 
-      const opt = this.scenarioSelectTarget?.selectedOptions?.[0]
-      const isBase = (opt?.dataset?.isBase === "1")
-      this.deleteScenarioBtnTarget.hidden = isBase
+    if (this.hasDeleteScenarioBtnTarget) {
+      this.deleteScenarioBtnTarget.hidden = inComparator || isBase
+    }
+
+    if (this.hasSaveScenarioBtnTarget) {
+      this.saveScenarioBtnTarget.hidden = inComparator || isBase
     }
   }
 
