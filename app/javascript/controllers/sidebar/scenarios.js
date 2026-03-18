@@ -32,6 +32,7 @@ export function createScenarios(controller) {
         })
 
         selector.disabled = false
+        controller._hasBaseScenario = !!baseId
 
         // ✅ decide qué seleccionar
         const idToSelect = selectedId ? String(selectedId) : baseId

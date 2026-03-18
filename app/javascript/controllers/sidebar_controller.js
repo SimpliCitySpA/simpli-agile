@@ -49,6 +49,12 @@ export default class extends Controller {
     "saveScenarioBtn",
     "scenarioParentDisplay",
     "locatorBtn",
+    "regionSelectWrap",
+    "regionBackBtn",
+    "municipalitySelectWrap",
+    "municipalityBackBtn",
+    "opportunitySection",
+    "addScenarioBtn",
   ]
 
   connect() {
@@ -97,6 +103,8 @@ export default class extends Controller {
 
   regionChanged(e) { return this.regionsMunicipalities.regionChanged(e) }
   municipalityChanged(e) { return this.regionsMunicipalities.municipalityChanged(e) }
+  clearRegion() { return this.regionsMunicipalities.clearRegion() }
+  clearMunicipality() { return this.regionsMunicipalities.clearMunicipality() }
 
 
   resetAfterMunicipalityChange() { return this.ui.resetAfterMunicipalityChange() }
@@ -252,17 +260,39 @@ export default class extends Controller {
     const inComparator = (this._uiMode === "comparador")
     const opt = this.scenarioSelectTarget?.selectedOptions?.[0]
     const isBase = (opt?.dataset?.isBase === "1")
+    const hasValidScenario = !!(opt?.value && !opt.value.includes("Seleccionar"))
+
+    // + button: solo cuando existe escenario base en esta comuna
+    if (this.hasAddScenarioBtnTarget) {
+      this.addScenarioBtnTarget.hidden = !this._hasBaseScenario || inComparator
+    }
 
     if (this.hasDeleteScenarioBtnTarget) {
-      this.deleteScenarioBtnTarget.hidden = inComparator || isBase
+      this.deleteScenarioBtnTarget.hidden = inComparator || isBase || !hasValidScenario
     }
 
     if (this.hasSaveScenarioBtnTarget) {
-      this.saveScenarioBtnTarget.hidden = inComparator || isBase
+      const showSave = !inComparator && !isBase && hasValidScenario
+      this.saveScenarioBtnTarget.hidden = !showSave
+      if (showSave) this.saveScenarioBtnTarget.disabled = true // se habilita en refreshProjectsLists
     }
 
     if (this.hasLocatorBtnTarget) {
       this.locatorBtnTarget.disabled = isBase
+    }
+
+    // Oportunidad: visible cuando hay escenario válido O cuando estamos en comparador
+    // (en comparador, syncComparatorGatingUI maneja el disabled del select)
+    if (this.hasOpportunitySectionTarget) {
+      this.opportunitySectionTarget.hidden = !hasValidScenario && !inComparator
+    }
+
+    if (this.hasOpportunitySelectTarget && hasValidScenario) {
+      this.opportunitySelectTarget.disabled = false
+    }
+
+    if (this.hasLocateSectionTarget) {
+      this.locateSectionTarget.hidden = !hasValidScenario || inComparator
     }
   }
 
