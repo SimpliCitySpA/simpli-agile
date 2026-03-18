@@ -17,7 +17,9 @@ services:
       retries: 10
 
   web:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
     container_name: simpli_agile_web
     command: bash -c "bin/rails server -b 0.0.0.0"
     volumes:
