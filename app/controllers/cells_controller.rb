@@ -182,7 +182,7 @@ class CellsController < ApplicationController
         jenks_breaks(deltas, k)
       end
 
-    proj_by_h3 = projects_by_h3_for_scenarios(scenario_a_id, scenario_b_id)
+    proj_by_h3 = projects_by_h3_for_scenarios(scenario_a_id, scenario_b_id, opportunity_code: opportunity)
 
     features = rows.map do |r|
       v = r["delta_value"].to_f
@@ -335,7 +335,7 @@ class CellsController < ApplicationController
         jenks_breaks(deltas_nonzero, k)
       end
 
-    proj_by_h3 = projects_by_h3_for_scenarios(scenario_a, scenario_b)
+    proj_by_h3 = projects_by_h3_for_scenarios(scenario_a, scenario_b, opportunity_code: opp_code)
 
     features = rows.map do |r|
       v = r["delta_value"].to_f
@@ -461,7 +461,7 @@ class CellsController < ApplicationController
     result.each { |r| rows << r }
 
     breaks = edges
-    proj_by_h3 = projects_by_h3_for_scenarios(scenario_id)
+    proj_by_h3 = projects_by_h3_for_scenarios(scenario_id, opportunity_code: opp_code)
 
     features = rows.map do |r|
       v = r["value"].to_f
@@ -589,7 +589,7 @@ class CellsController < ApplicationController
       end
 
     breaks = edges
-    proj_by_h3 = projects_by_h3_for_scenarios(scenario_id)
+    proj_by_h3 = projects_by_h3_for_scenarios(scenario_id, opportunity_code: opp_code)
 
     features = rows.map do |r|
       v = r.attributes["value"].to_f
@@ -624,13 +624,13 @@ class CellsController < ApplicationController
 
   private
 
-  # Returns hash { h3 => [project_name, ...] } for the given scenario ids
-  def projects_by_h3_for_scenarios(*scenario_ids)
+  # Returns hash { h3 => [project_name, ...] } for the given scenario ids, filtered by opportunity_code
+  def projects_by_h3_for_scenarios(*scenario_ids, opportunity_code:)
     ids = Array(scenario_ids).flatten.compact.map(&:to_i).reject(&:zero?)
     return {} if ids.empty?
 
     result = {}
-    Project.where(scenario_id: ids).select(:h3, :name).each do |p|
+    Project.where(scenario_id: ids, opportunity_code: opportunity_code).select(:h3, :name).each do |p|
       result[p.h3] ||= []
       result[p.h3] << p.name
     end
