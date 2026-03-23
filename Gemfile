@@ -25,7 +25,7 @@ gem "stimulus-rails"
 
 gem "bootstrap", "~> 5.3"
 gem "simple_form"
-gem "sassc-rails"
+gem "dartsass-rails"
 gem "devise"
 gem "activerecord-postgis-adapter"
 gem "rgeo-geojson"
