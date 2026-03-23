@@ -58,7 +58,7 @@ export function createPublishDelete(controller) {
       const isBase = (opt?.dataset?.isBase === "1")
       if (isBase) return alert("No puedes eliminar el escenario base.")
 
-      if (controller._selectedScenarioStatus === "draft") {
+      if (controller._selectedScenarioStatus === "draft" && controller._hasDraftProjects) {
         return alert("Recalcula las accesibilidades antes de eliminar este escenario, o elimínalo directamente desde el selector.")
       }
 
