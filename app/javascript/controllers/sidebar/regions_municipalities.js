@@ -82,8 +82,11 @@ export function createRegionsMunicipalities(controller) {
               selector.value = defaultCode
               if (selector.value === defaultCode) {
                 if (controller._mapReady || window._mapReady) {
-                  controller._instantMunicipalityLoad = true
-                  controller.municipalityChanged({ target: selector })
+                  // Skip if onMapReady already dispatched municipality:selected
+                  if (!controller._selectedMunicipalityCode) {
+                    controller._instantMunicipalityLoad = true
+                    controller.municipalityChanged({ target: selector })
+                  }
                 } else {
                   controller._pendingDefaultMunicipality = defaultCode
                 }

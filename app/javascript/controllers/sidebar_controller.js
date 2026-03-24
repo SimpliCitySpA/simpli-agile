@@ -1,13 +1,13 @@
 import { Controller } from "@hotwired/stimulus"
-import { csrfToken, getJSON, postJSON, deleteJSON, escapeHTML } from "./sidebar/api"
-import { createUIState } from "./sidebar/ui_state"
-import { createRegionsMunicipalities } from "./sidebar/regions_municipalities"
-import { createScenarios } from "./sidebar/scenarios"
-import { createOpportunitiesLayers } from "./sidebar/opportunities_layers"
-import { createLocator } from "./sidebar/locator"
-import { createProjectLists } from "./sidebar/project_lists"
-import { createPublishDelete } from "./sidebar/publish_delete"
-import { createComparator } from "./sidebar/comparator"
+import { csrfToken, getJSON, postJSON, deleteJSON, escapeHTML } from "controllers/sidebar/api"
+import { createUIState } from "controllers/sidebar/ui_state"
+import { createRegionsMunicipalities } from "controllers/sidebar/regions_municipalities"
+import { createScenarios } from "controllers/sidebar/scenarios"
+import { createOpportunitiesLayers } from "controllers/sidebar/opportunities_layers"
+import { createLocator } from "controllers/sidebar/locator"
+import { createProjectLists } from "controllers/sidebar/project_lists"
+import { createPublishDelete } from "controllers/sidebar/publish_delete"
+import { createComparator } from "controllers/sidebar/comparator"
 
 export default class extends Controller {
   static values = { defaultMunicipality: String }
@@ -108,10 +108,14 @@ export default class extends Controller {
 
   onMapReady = () => {
     this._mapReady = true
-    // If sidebar was pre-rendered in municipality state, just set internal state — no need to re-trigger UI
+    // If sidebar was pre-rendered in municipality state, notify the map so it hides regions immediately.
+    // (loadMunicipalitiesIntoSelect will skip its own dispatch because _selectedMunicipalityCode is already set)
     if (this.defaultMunicipalityValue && !this._pendingDefaultMunicipality) {
       const munCode = this.defaultMunicipalityValue
       this._selectedMunicipalityCode = munCode
+      window.dispatchEvent(new CustomEvent("municipality:selected", {
+        detail: { municipality_code: munCode, instant: true }
+      }))
       return
     }
     if (this._pendingDefaultMunicipality) {
