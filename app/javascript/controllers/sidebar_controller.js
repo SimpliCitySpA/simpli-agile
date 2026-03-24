@@ -108,10 +108,14 @@ export default class extends Controller {
 
   onMapReady = () => {
     this._mapReady = true
-    // If sidebar was pre-rendered in municipality state, just set internal state — no need to re-trigger UI
+    // If sidebar was pre-rendered in municipality state, notify the map so it hides regions immediately.
+    // (loadMunicipalitiesIntoSelect will skip its own dispatch because _selectedMunicipalityCode is already set)
     if (this.defaultMunicipalityValue && !this._pendingDefaultMunicipality) {
       const munCode = this.defaultMunicipalityValue
       this._selectedMunicipalityCode = munCode
+      window.dispatchEvent(new CustomEvent("municipality:selected", {
+        detail: { municipality_code: munCode, instant: true }
+      }))
       return
     }
     if (this._pendingDefaultMunicipality) {
