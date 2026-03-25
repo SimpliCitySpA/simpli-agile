@@ -122,14 +122,27 @@ export function createRegionsMunicipalities(controller) {
       if (controller.hasMunicipalitySelectWrapTarget) controller.municipalitySelectWrapTarget.hidden = false
       if (controller.hasMunicipalityBackBtnTarget) controller.municipalityBackBtnTarget.hidden = true
 
+      // Reset municipality select to placeholder
+      if (controller.hasMunicipalitySelectTarget) {
+        controller.municipalitySelectTarget.selectedIndex = 0
+      }
+
       // Region back button reappears
       if (controller.hasRegionBackBtnTarget) controller.regionBackBtnTarget.hidden = false
+
+      // Clear municipality before toggling mode so enterConstructorMode sees null
+      controller._selectedMunicipalityCode = null
+
+      // If in comparator mode, switch back to constructor
+      if (controller._uiMode === "comparador") {
+        const constructorBtn = document.querySelector('.mode-toggle__btn[data-mode="constructor"]')
+        if (constructorBtn) constructorBtn.click()
+      }
 
       // Hide mode toggle (no municipality selected)
       if (controller.hasModeToggleTarget) controller.modeToggleTarget.hidden = true
 
       // Reset sidebar UI state
-      controller._selectedMunicipalityCode = null
       controller.resetAfterMunicipalityChange()
 
       window.dispatchEvent(new CustomEvent("municipality:cleared"))
