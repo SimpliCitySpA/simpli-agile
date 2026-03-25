@@ -11,6 +11,7 @@ import { MapThematicRunners } from "controllers/map/map_thematic_runners"
 import { MapCompareSlider } from "controllers/map/map_compare_slider"
 import { MapCompareSplit } from "controllers/map/map_compare_split"
 import { MapDashboard } from "controllers/map/map_dashboard"
+import { MapStyle } from "controllers/map/map_style"
 
 export default class extends Controller {
   static values = { token: String, initialCenter: Array, initialZoom: Number }
@@ -27,7 +28,9 @@ export default class extends Controller {
     "compareRight",
     "splitContainer",
     "splitTop",
-    "splitBottom"
+    "splitBottom",
+    "stylePickerBtn",
+    "stylePickerPanel"
   ]
 
   connect() {
@@ -75,6 +78,7 @@ export default class extends Controller {
       this.compareSlider = new MapCompareSlider(this)
       this.compareSplit = new MapCompareSplit(this)
       this.dashboard = new MapDashboard(this)
+      this.styleManager = new MapStyle(this)
 
       this.adminLayers.ensureMunicipalitiesLayer()
       this.hover.bindMunicipalitiesHoverTooltip()
@@ -150,6 +154,8 @@ export default class extends Controller {
 
   toggleLegend = () => this.legend.toggle()
   toggleDashboard = () => this.dashboard.toggle()
+  toggleStylePicker = () => this.styleManager?.togglePicker()
+  selectStyle(e) { this.styleManager?.select(e.currentTarget.dataset.styleId) }
 
   onScenarioSelected = (e) => this.stateEvents.onScenarioSelected(e)
   onUIModeChanged = (e) => this.stateEvents.onUIModeChanged(e)
