@@ -43,6 +43,11 @@ export function createPublishDelete(controller) {
           detail: { scenario_id: String(scenarioId), status: "published" }
         }))
 
+        controller._api?.trackEvent("scenario_saved", {
+          scenario_id: scenarioId,
+          municipality_code: controller._selectedMunicipalityCode
+        })
+
         alert("Accesibilidades recalculadas ✅")
       } finally {
         if (controller.hasAddBtnTarget) controller.addBtnTarget.disabled = false
@@ -58,7 +63,7 @@ export function createPublishDelete(controller) {
       const isBase = (opt?.dataset?.isBase === "1")
       if (isBase) return alert("No puedes eliminar el escenario base.")
 
-      if (controller._selectedScenarioStatus === "draft") {
+      if (controller._selectedScenarioStatus === "draft" && controller._hasDraftProjects) {
         return alert("Recalcula las accesibilidades antes de eliminar este escenario, o elimínalo directamente desde el selector.")
       }
 

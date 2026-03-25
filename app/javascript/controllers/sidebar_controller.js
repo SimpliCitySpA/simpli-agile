@@ -1,15 +1,17 @@
 import { Controller } from "@hotwired/stimulus"
-import { csrfToken, getJSON, postJSON, deleteJSON, escapeHTML } from "./sidebar/api"
-import { createUIState } from "./sidebar/ui_state"
-import { createRegionsMunicipalities } from "./sidebar/regions_municipalities"
-import { createScenarios } from "./sidebar/scenarios"
-import { createOpportunitiesLayers } from "./sidebar/opportunities_layers"
-import { createLocator } from "./sidebar/locator"
-import { createProjectLists } from "./sidebar/project_lists"
-import { createPublishDelete } from "./sidebar/publish_delete"
-import { createComparator } from "./sidebar/comparator"
+import { csrfToken, getJSON, postJSON, deleteJSON, escapeHTML, trackEvent } from "controllers/sidebar/api"
+import { createUIState } from "controllers/sidebar/ui_state"
+import { createRegionsMunicipalities } from "controllers/sidebar/regions_municipalities"
+import { createScenarios } from "controllers/sidebar/scenarios"
+import { createOpportunitiesLayers } from "controllers/sidebar/opportunities_layers"
+import { createLocator } from "controllers/sidebar/locator"
+import { createProjectLists } from "controllers/sidebar/project_lists"
+import { createPublishDelete } from "controllers/sidebar/publish_delete"
+import { createComparator } from "controllers/sidebar/comparator"
 
 export default class extends Controller {
+  static values = { defaultMunicipality: String }
+
   static targets = [
     "panel",
     "mapArea",
@@ -75,7 +77,7 @@ export default class extends Controller {
     this.loadMunicipalitiesIntoSelect()
     this.loadOpportunitiesIntoSelect()
     this.loadLocatorOpportunitiesIntoSelect()
-    this._api = { csrfToken, getJSON, postJSON, deleteJSON, escapeHTML }
+    this._api = { csrfToken, getJSON, postJSON, deleteJSON, escapeHTML, trackEvent }
 
     window.addEventListener("region:clicked", this.onRegionClicked)
     window.addEventListener("municipality:clicked", this.onMunicipalityClicked)
@@ -84,6 +86,8 @@ export default class extends Controller {
     window.addEventListener("scenario:selected", this.onScenarioSelected)
     window.addEventListener("ui:mode_changed", this.onUIModeChanged)
     window.addEventListener("comparison:context_changed", this.onComparisonContextChanged)
+    window.addEventListener("region:context_resolved", this.onRegionContextResolved)
+    window.addEventListener("map:ready", this.onMapReady)
   }
 
   disconnect() {
@@ -94,13 +98,36 @@ export default class extends Controller {
     window.removeEventListener("scenario:selected", this.onScenarioSelected)
     window.removeEventListener("ui:mode_changed", this.onUIModeChanged)
     window.removeEventListener("comparison:context_changed", this.onComparisonContextChanged)
+    window.removeEventListener("region:context_resolved", this.onRegionContextResolved)
+    window.removeEventListener("map:ready", this.onMapReady)
   }
 
   loadRegionsIntoSelect() { return this.regionsMunicipalities.loadRegionsIntoSelect() }
   onRegionClicked = (e) => { return this.regionsMunicipalities.onRegionClicked(e) }
+  onRegionContextResolved = (e) => { return this.regionsMunicipalities.onRegionContextResolved(e) }
 
-  loadMunicipalitiesIntoSelect(regionCode = null) {
-    return this.regionsMunicipalities.loadMunicipalitiesIntoSelect(regionCode)
+  onMapReady = () => {
+    this._mapReady = true
+    // If sidebar was pre-rendered in municipality state, just set internal state.
+    // loadMunicipalitiesIntoSelect will call municipalityChanged to set up the full sidebar UI.
+    if (this.defaultMunicipalityValue && !this._pendingDefaultMunicipality) {
+      const munCode = this.defaultMunicipalityValue
+      this._selectedMunicipalityCode = munCode
+      return
+    }
+    if (this._pendingDefaultMunicipality) {
+      const munCode = this._pendingDefaultMunicipality
+      this._pendingDefaultMunicipality = null
+      if (this.hasMunicipalitySelectTarget) {
+        this.municipalitySelectTarget.value = munCode
+        this._instantMunicipalityLoad = true
+        this.municipalityChanged({ target: this.municipalitySelectTarget })
+      }
+    }
+  }
+
+  loadMunicipalitiesIntoSelect(regionCode = null, opts = {}) {
+    return this.regionsMunicipalities.loadMunicipalitiesIntoSelect(regionCode, opts)
   }
   onMunicipalityClicked = (e) => { return this.regionsMunicipalities.onMunicipalityClicked(e) }
 

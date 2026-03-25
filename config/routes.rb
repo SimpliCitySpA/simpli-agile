@@ -52,4 +52,8 @@ Rails.application.routes.draw do
   end
 
   resources :opportunities, only: [:index]
+
+  patch "users/default_municipality", to: "users#update_default_municipality"
+
+  post "analytics/events", to: "analytics_events#create"
 end

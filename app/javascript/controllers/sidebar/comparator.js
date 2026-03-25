@@ -58,7 +58,8 @@ export function createComparator(controller) {
       if (controller.hasComparatorDividerTarget) controller.comparatorDividerTarget.hidden = false
       if (controller.hasCompareModeSectionTarget) controller.compareModeSectionTarget.hidden = false
 
-      // ❌ comparador no construye
+      // ❌ comparador no construye ni navega de vuelta
+      if (controller.hasMunicipalityBackBtnTarget) controller.municipalityBackBtnTarget.hidden = true
       if (controller.hasLocateSectionTarget) controller.locateSectionTarget.hidden = true
       if (controller.hasLocatorPanelTarget) controller.locatorPanelTarget.hidden = true
 
@@ -87,6 +88,10 @@ export function createComparator(controller) {
     enterConstructorMode() {
       if (controller.hasRegionSectionTarget) controller.regionSectionTarget.hidden = false
       if (controller.hasMunicipalitySectionTarget) controller.municipalitySectionTarget.hidden = false
+      // Restore back button only if a municipality is currently selected
+      if (controller.hasMunicipalityBackBtnTarget) {
+        controller.municipalityBackBtnTarget.hidden = !controller._selectedMunicipalityCode
+      }
 
       if (controller.hasScenarioSectionTarget) {
         controller.scenarioSectionTarget.hidden = !controller._selectedMunicipalityCode
@@ -215,6 +220,13 @@ export function createComparator(controller) {
 
       controller._compareMode = mode
       syncAccessibilityBtnVisibility()
+
+      controller._api?.trackEvent("compare_mode_changed", {
+        mode,
+        municipality_code: controller._selectedMunicipalityCode,
+        scenario_a_id: controller._scenarioAId,
+        scenario_b_id: controller._scenarioBId
+      })
 
       window.dispatchEvent(new CustomEvent("comparison:context_changed", {
         detail: {

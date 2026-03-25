@@ -6,6 +6,28 @@ export function createRegionsMunicipalities(controller) {
     // Métodos (mismos nombres)
     // -------------------------
 
+    onRegionContextResolved(e) {
+      const regionCode = e.detail.region_code
+      if (!regionCode) return
+
+      // Store resolved region code independently — the select may not have loaded yet
+      controller._resolvedRegionCode = regionCode
+
+      // Try to set the region select value (may be a no-op if regions aren't loaded yet)
+      if (controller.hasRegionSelectTarget) {
+        controller.regionSelectTarget.value = regionCode
+      }
+
+      // Set the region back button text (keep hidden — municipality is still active)
+      if (controller.hasRegionBackBtnTarget) {
+        const option = Array.from(controller.regionSelectTarget?.options || [])
+          .find(o => o.value === regionCode)
+        const regionName = option?.textContent?.trim()
+        controller.regionBackBtnTarget.textContent = `← ${regionName || "Volver a seleccionar región"}`
+        // Keep hidden — will be shown only when user clicks back on municipality
+      }
+    },
+
     loadRegionsIntoSelect() {
       fetch('/regions/names')
         .then(response => response.json())
@@ -33,7 +55,7 @@ export function createRegionsMunicipalities(controller) {
       controller.regionChanged({ target: controller.regionSelectTarget })
     },
 
-    loadMunicipalitiesIntoSelect(regionCode = null) {
+    loadMunicipalitiesIntoSelect(regionCode = null, { autoSelect = true } = {}) {
       let url = '/municipalities/names'
       if (regionCode) {
         url += `?region_code=${regionCode}`
@@ -43,6 +65,7 @@ export function createRegionsMunicipalities(controller) {
         .then(response => response.json())
         .then(data => {
           const selector = controller.municipalitySelectTarget
+          const preSelected = selector.value && !selector.value.includes("Seleccionar") ? selector.value : null
           selector.innerHTML = "<option>Seleccionar comuna...</option>"
 
           data.forEach(municipality => {
@@ -51,6 +74,25 @@ export function createRegionsMunicipalities(controller) {
             option.textContent = municipality.name
             selector.appendChild(option)
           })
+
+          // Restore pre-selected value if sidebar was pre-rendered in municipality state
+          if (preSelected) selector.value = preSelected
+
+          // Auto-select default municipality on initial full load (no region filter)
+          if (!regionCode && autoSelect) {
+            const defaultCode = controller.defaultMunicipalityValue
+            if (defaultCode) {
+              selector.value = defaultCode
+              if (selector.value === defaultCode) {
+                if (controller._mapReady || window._mapReady) {
+                  controller._instantMunicipalityLoad = true
+                  controller.municipalityChanged({ target: selector })
+                } else {
+                  controller._pendingDefaultMunicipality = defaultCode
+                }
+              }
+            }
+          }
         })
         .catch(error => console.error("Error al cargar las comunas:", error))
     },
@@ -87,6 +129,8 @@ export function createRegionsMunicipalities(controller) {
     },
 
     clearRegion() {
+      controller._resolvedRegionCode = null
+
       // Swap back button → select
       if (controller.hasRegionSelectWrapTarget) controller.regionSelectWrapTarget.hidden = false
       if (controller.hasRegionBackBtnTarget) controller.regionBackBtnTarget.hidden = true
@@ -99,9 +143,7 @@ export function createRegionsMunicipalities(controller) {
       // Reset municipality section to initial state
       if (controller.hasMunicipalitySelectWrapTarget) controller.municipalitySelectWrapTarget.hidden = false
       if (controller.hasMunicipalityBackBtnTarget) controller.municipalityBackBtnTarget.hidden = true
-      if (controller.hasMunicipalitySelectTarget) {
-        controller.municipalitySelectTarget.innerHTML = "<option>Seleccionar comuna...</option>"
-      }
+      controller.loadMunicipalitiesIntoSelect(null, { autoSelect: false })
 
       // Hide mode toggle (no municipality selected)
       if (controller.hasModeToggleTarget) controller.modeToggleTarget.hidden = true
@@ -118,17 +160,36 @@ export function createRegionsMunicipalities(controller) {
       // Cerrar localizador si está abierto
       controller.closeLocator()
 
-      // Swap back button → select
+      // Restore municipality select (reset to placeholder)
       if (controller.hasMunicipalitySelectWrapTarget) controller.municipalitySelectWrapTarget.hidden = false
       if (controller.hasMunicipalityBackBtnTarget) controller.municipalityBackBtnTarget.hidden = true
+      if (controller.hasMunicipalitySelectTarget) controller.municipalitySelectTarget.value = ""
 
-      // Reset municipality select to placeholder
-      if (controller.hasMunicipalitySelectTarget) {
-        controller.municipalitySelectTarget.selectedIndex = 0
+      // If a region was selected via UI (or resolved via context), show its back button.
+      // Use _resolvedRegionCode as fallback in case the select hadn't loaded when
+      // onRegionContextResolved fired (e.g. page refresh with default municipality).
+      const regionValue = controller.regionSelectTarget?.value
+      const regionIsActive = (regionValue && !regionValue.includes("Seleccionar")) ||
+                             !!controller._resolvedRegionCode
+
+      if (regionIsActive) {
+        // Ensure select value is set (may have failed earlier if regions weren't loaded)
+        if (controller._resolvedRegionCode && controller.hasRegionSelectTarget) {
+          controller.regionSelectTarget.value = controller._resolvedRegionCode
+        }
+        // Update back button text now that regions are likely loaded
+        if (controller.hasRegionBackBtnTarget) {
+          const option = Array.from(controller.regionSelectTarget?.options || [])
+            .find(o => o.value === String(controller._resolvedRegionCode))
+          const regionName = option?.textContent?.trim()
+          if (regionName) {
+            controller.regionBackBtnTarget.textContent = `← ${regionName}`
+          }
+          controller.regionBackBtnTarget.hidden = false
+        }
+      } else {
+        if (controller.hasRegionSelectWrapTarget) controller.regionSelectWrapTarget.hidden = false
       }
-
-      // Region back button reappears
-      if (controller.hasRegionBackBtnTarget) controller.regionBackBtnTarget.hidden = false
 
       // Clear municipality before toggling mode so enterConstructorMode sees null
       controller._selectedMunicipalityCode = null
@@ -161,6 +222,9 @@ export function createRegionsMunicipalities(controller) {
       controller.resetAfterMunicipalityChange()
 
       controller._selectedMunicipalityCode = munCode
+
+      const trackedMunName = controller.municipalitySelectTarget.selectedOptions?.[0]?.textContent?.trim()
+      controller._api?.trackEvent("municipality_opened", { municipality_code: munCode, municipality_name: trackedMunName })
 
       // Para usuarios sin sesión (sin selector de escenario), mostrar oportunidad directamente
       // y cargar el escenario base de la comuna para poder mostrar celdas.
@@ -195,10 +259,11 @@ export function createRegionsMunicipalities(controller) {
       }
 
       window.dispatchEvent(new CustomEvent("municipality:selected", {
-        detail: { municipality_code: munCode }
+        detail: { municipality_code: munCode, instant: !!controller._instantMunicipalityLoad }
       }))
+      controller._instantMunicipalityLoad = false
 
-      // Swap select → back button
+      // Swap municipality select → back button
       const munName = controller.municipalitySelectTarget.selectedOptions?.[0]?.textContent?.trim()
       if (controller.hasMunicipalitySelectWrapTarget) controller.municipalitySelectWrapTarget.hidden = true
       if (controller.hasMunicipalityBackBtnTarget) {
@@ -206,8 +271,14 @@ export function createRegionsMunicipalities(controller) {
         controller.municipalityBackBtnTarget.hidden = false
       }
 
-      // Hide region back button while a municipality is selected
+      // Hide region back button while a municipality is selected.
+      // If no region was selected via UI, also hide the region select wrap.
       if (controller.hasRegionBackBtnTarget) controller.regionBackBtnTarget.hidden = true
+      const regionValue = controller.regionSelectTarget?.value
+      const regionIsActive = regionValue && !regionValue.includes("Seleccionar")
+      if (!regionIsActive && controller.hasRegionSelectWrapTarget) {
+        controller.regionSelectWrapTarget.hidden = true
+      }
 
       if (controller.hasScenarioSelectTarget) {
         controller.scenarioSectionTarget.hidden = false

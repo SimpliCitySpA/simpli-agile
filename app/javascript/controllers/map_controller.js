@@ -1,19 +1,20 @@
 import { Controller } from "@hotwired/stimulus"
-import { MapSelection } from "./map/map_selection"
-import { MapHover } from "./map/map_hover"
-import { MapThematic } from "./map/map_thematic"
-import { MapLegend } from "./map/map_legend"
-import { MapCellsLayer } from "./map/map_cells_layer"
-import { MapAdminLayers } from "./map/map_admin_layers"
-import { MapLocator } from "./map/map_locator"
-import { MapStateEvents } from "./map/map_state_events"
-import { MapThematicRunners } from "./map/map_thematic_runners"
-import { MapCompareSlider } from "./map/map_compare_slider"
-import { MapCompareSplit } from "./map/map_compare_split"
-import { MapDashboard } from "./map/map_dashboard"
+import { MapSelection } from "controllers/map/map_selection"
+import { MapHover } from "controllers/map/map_hover"
+import { MapThematic } from "controllers/map/map_thematic"
+import { MapLegend } from "controllers/map/map_legend"
+import { MapCellsLayer } from "controllers/map/map_cells_layer"
+import { MapAdminLayers } from "controllers/map/map_admin_layers"
+import { MapLocator } from "controllers/map/map_locator"
+import { MapStateEvents } from "controllers/map/map_state_events"
+import { MapThematicRunners } from "controllers/map/map_thematic_runners"
+import { MapCompareSlider } from "controllers/map/map_compare_slider"
+import { MapCompareSplit } from "controllers/map/map_compare_split"
+import { MapDashboard } from "controllers/map/map_dashboard"
+import { MapStyle } from "controllers/map/map_style"
 
 export default class extends Controller {
-  static values = { token: String }
+  static values = { token: String, initialCenter: Array, initialZoom: Number }
   static targets = [
     "mapContainer",
     "legendPanel",
@@ -27,7 +28,9 @@ export default class extends Controller {
     "compareRight",
     "splitContainer",
     "splitTop",
-    "splitBottom"
+    "splitBottom",
+    "stylePickerBtn",
+    "stylePickerPanel"
   ]
 
   connect() {
@@ -46,11 +49,14 @@ export default class extends Controller {
 
     mapboxgl.accessToken = this.tokenValue
 
+    const center = this.initialCenterValue?.length === 2 ? this.initialCenterValue : [-70.6371, -33.4378]
+    const zoom   = this.initialZoomValue || 4
+
     this.map = new mapboxgl.Map({
       container: this.mapContainerTarget,
       style: "mapbox://styles/mapbox/streets-v11",
-      center: [-70.6371, -33.4378],
-      zoom: 4
+      center,
+      zoom
     })
 
     this.map.addControl(
@@ -72,6 +78,7 @@ export default class extends Controller {
       this.compareSlider = new MapCompareSlider(this)
       this.compareSplit = new MapCompareSplit(this)
       this.dashboard = new MapDashboard(this)
+      this.styleManager = new MapStyle(this)
 
       this.adminLayers.ensureMunicipalitiesLayer()
       this.hover.bindMunicipalitiesHoverTooltip()
@@ -99,10 +106,17 @@ export default class extends Controller {
       window.addEventListener("cell:selection_clear", this.onCellSelectionClear)
       window.addEventListener("project:hover", this.onProjectHover)
       window.addEventListener("project:hover_end", this.onProjectHoverEnd)
+
+      window._mapReady = true
+      window.dispatchEvent(new CustomEvent("map:ready"))
     })
   }
 
   disconnect() {
+    // Reset global flag so Turbo navigations don't see a stale "map ready" state
+    window._mapReady = false
+    this.map?.remove()
+
     window.removeEventListener("region:selected", this.onRegionSelected)
     window.removeEventListener("region:cleared", this.onRegionCleared)
     window.removeEventListener("municipality:selected", this.onMunicipalitySelected)
@@ -144,6 +158,8 @@ export default class extends Controller {
 
   toggleLegend = () => this.legend.toggle()
   toggleDashboard = () => this.dashboard.toggle()
+  toggleStylePicker = () => this.styleManager?.togglePicker()
+  selectStyle(e) { this.styleManager?.select(e.currentTarget.dataset.styleId) }
 
   onScenarioSelected = (e) => this.stateEvents.onScenarioSelected(e)
   onUIModeChanged = (e) => this.stateEvents.onUIModeChanged(e)
