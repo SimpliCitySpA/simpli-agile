@@ -275,18 +275,22 @@ export class MapAdminLayers {
     const regionCode = event.detail.region_code
     this.c._selectedRegionCode = regionCode
 
-    const focus = await fetch(`/regions/focus?region_code=${encodeURIComponent(regionCode)}`).then(r => r.json())
-    this.c.map.flyTo({
-      center: focus.centroid,
-      zoom: focus.zoom,
-      essential: true
-    })
+    try {
+      const focus = await fetch(`/regions/focus?region_code=${encodeURIComponent(regionCode)}`).then(r => r.json())
+      this.c.map.flyTo({
+        center: focus.centroid,
+        zoom: focus.zoom,
+        essential: true
+      })
 
-    const fc = await fetch(`/municipalities?region_code=${encodeURIComponent(regionCode)}`).then(r => r.json())
-    this.c.map.getSource("municipalities").setData(fc)
+      const fc = await fetch(`/municipalities?region_code=${encodeURIComponent(regionCode)}`).then(r => r.json())
+      this.c.map.getSource("municipalities").setData(fc)
 
-    this.setRegionsVisible(false)
-    this.setMunicipalitiesVisible(true)
+      this.setRegionsVisible(false)
+      this.setMunicipalitiesVisible(true)
+    } finally {
+      window.dispatchEvent(new CustomEvent("region:ready"))
+    }
   }
 
   onMunicipalitySelected = async (event) => {
