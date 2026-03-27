@@ -123,6 +123,12 @@ export class MapCellsLayer {
       })
     }
 
+    // Boundary lines must always sit above cells — re-stack them on top.
+    // Order: selected-municipality-outline, study-area-glow, study-area-line (topmost).
+    ;["selected-municipality-outline", "study-area-glow", "study-area-line"].forEach(id => {
+      if (map.getLayer(id)) map.moveLayer(id)
+    })
+
     // Importante: el hover binding vive en MapHover, no acá,
     // pero acá es el lugar correcto para asegurarlo después de crear layers.
     this.c.hover?.bindCellsHoverTooltip?.()

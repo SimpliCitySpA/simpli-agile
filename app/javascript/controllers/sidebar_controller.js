@@ -322,7 +322,7 @@ export default class extends Controller {
       this.opportunitySectionTarget.hidden = !hasValidScenario && !inComparator
     }
 
-    if (this.hasOpportunitySelectTarget && hasValidScenario) {
+    if (this.hasOpportunitySelectTarget && hasValidScenario && !inComparator) {
       this.opportunitySelectTarget.disabled = false
     }
 
