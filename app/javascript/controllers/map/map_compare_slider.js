@@ -1,3 +1,5 @@
+import { dataFetch } from "controllers/sidebar/api"
+
 export class MapCompareSlider {
   constructor(controller) {
     this.c = controller
@@ -33,11 +35,15 @@ export class MapCompareSlider {
     zoom: c.map.getZoom(),
     bearing: c.map.getBearing(),
     pitch: c.map.getPitch(),
-    interactive: true
+    interactive: true,
+    attributionControl: false
   }
 
   this.mapLeft = new mapboxgl.Map({ ...baseOpts, container: c.compareLeftTarget })
   this.mapRight = new mapboxgl.Map({ ...baseOpts, container: c.compareRightTarget })
+
+  this.mapLeft.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-left")
+  this.mapRight.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-left")
 
   const CompareCtor = window.mapboxgl?.Compare || window.Compare || window.MapboxCompare
   if (!CompareCtor) {
@@ -196,7 +202,7 @@ export class MapCompareSlider {
     const urlB = urlFor(B)
     if (!urlA || !urlB) return
 
-    const [respA, respB] = await Promise.all([fetch(urlA), fetch(urlB)])
+    const [respA, respB] = await Promise.all([dataFetch(urlA), dataFetch(urlB)])
 
     if (!respA.ok || !respB.ok) {
       console.error("[slider] error fetching compare data", {

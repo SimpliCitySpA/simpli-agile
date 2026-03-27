@@ -1,3 +1,5 @@
+import { dataFetch } from "controllers/sidebar/api"
+
 export class MapCompareSplit {
   constructor(controller) {
     this.c = controller
@@ -35,11 +37,15 @@ export class MapCompareSplit {
       zoom: c.map.getZoom(),
       bearing: c.map.getBearing(),
       pitch: c.map.getPitch(),
-      interactive: true
+      interactive: true,
+      attributionControl: false
     }
 
     this.mapTop = new mapboxgl.Map({ ...baseOpts, container: c.splitTopTarget })
     this.mapBottom = new mapboxgl.Map({ ...baseOpts, container: c.splitBottomTarget })
+
+    this.mapTop.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-left")
+    this.mapBottom.addControl(new mapboxgl.AttributionControl({ compact: true }), "bottom-left")
 
     const sync = (src, dst) => {
       if (this._syncing) return
@@ -125,8 +131,8 @@ export class MapCompareSplit {
     }
 
     const [payloadA, payloadB] = await Promise.all([
-      fetch(urlFor(A)).then(r => r.json()),
-      fetch(urlFor(B)).then(r => r.json())
+      dataFetch(urlFor(A)).then(r => r.json()),
+      dataFetch(urlFor(B)).then(r => r.json())
     ])
 
     const fcA = payloadA?.type === "FeatureCollection" ? payloadA : payloadA?.data || payloadA?.geojson
