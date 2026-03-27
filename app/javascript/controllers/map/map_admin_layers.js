@@ -164,9 +164,9 @@ export class MapAdminLayers {
         type: "line",
         source: "study-area",
         paint: {
-          "line-color": "#2bf89a",
+          "line-color": "#233141",
           "line-width": 10,
-          "line-opacity": 0.15,
+          "line-opacity": 0.12,
           "line-blur": 6
         }
       })
@@ -178,8 +178,8 @@ export class MapAdminLayers {
         type: "line",
         source: "study-area",
         paint: {
-          "line-color": "#2bf89a",
-          "line-width": 2.5,
+          "line-color": "#233141",
+          "line-width": 1.5,
           "line-opacity": 0.95
         }
       })
@@ -352,13 +352,15 @@ export class MapAdminLayers {
     if (!this.c._selectedRegionCode && focus.region_code) {
       this.c._selectedRegionCode = focus.region_code
 
-      // Preload municipalities GeoJSON for this region (hidden) so they appear on back.
-      const fc = await fetch(`/municipalities?region_code=${encodeURIComponent(focus.region_code)}`).then(r => r.json())
-      this.c.map.getSource("municipalities").setData(fc)
-
+      // Notify the sidebar immediately so _resolvedRegionCode is set before the user
+      // can click back — don't wait for the municipalities GeoJSON fetch below.
       window.dispatchEvent(new CustomEvent("region:context_resolved", {
         detail: { region_code: focus.region_code }
       }))
+
+      // Preload municipalities GeoJSON for this region (hidden) so they appear on back.
+      const fc = await fetch(`/municipalities?region_code=${encodeURIComponent(focus.region_code)}`).then(r => r.json())
+      this.c.map.getSource("municipalities").setData(fc)
     }
   }
 
@@ -433,8 +435,9 @@ export class MapAdminLayers {
 
     if (feature) {
       src.setData({ type: "FeatureCollection", features: [feature] })
-      if (map.getLayer("study-area-glow")) map.moveLayer("study-area-glow")
-      if (map.getLayer("study-area-line")) map.moveLayer("study-area-line")
+      ;["selected-municipality-outline", "study-area-glow", "study-area-line"].forEach(id => {
+        if (map.getLayer(id)) map.moveLayer(id)
+      })
       this.c._hasStudyArea = true
     } else {
       src.setData({ type: "FeatureCollection", features: [] })

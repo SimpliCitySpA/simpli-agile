@@ -17,14 +17,10 @@ class MunicipalitiesController < ApplicationController
   end
 
   def names
-    if params[:region_code]
-      municipalities = Municipality.where(region_code: params[:region_code]).map { |municipality| {
-        name: municipality.name, municipality_code: municipality.municipality_code
-      } }
-    else
-      municipalities = Municipality.select(:name, :municipality_code).all
-    end
-
+    scope = params[:region_code] ?
+      Municipality.where(region_code: params[:region_code]) :
+      Municipality.all
+    municipalities = scope.select(:name, :municipality_code).order(:name)
     render json: municipalities
   end
 

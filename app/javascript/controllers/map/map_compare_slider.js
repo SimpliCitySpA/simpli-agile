@@ -28,7 +28,7 @@ export class MapCompareSlider {
 
   const mapboxgl = window.mapboxgl
   const baseOpts = {
-    style: "mapbox://styles/mapbox/streets-v11",
+    style: `mapbox://styles/mapbox/${c.styleManager?._currentStyle || "streets-v11"}`,
     center: c.map.getCenter(),
     zoom: c.map.getZoom(),
     bearing: c.map.getBearing(),
