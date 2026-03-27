@@ -44,14 +44,22 @@
     inset: 0;
   }
 
-  /* Move Mapbox attribution past the floating sidebar */
+  /* Mapbox logo + attribution: past the sidebar, pinned to the very bottom */
   .mapboxgl-ctrl-bottom-left {
     left: 304px;
+    bottom: 4px !important;
     transition: left 220ms ease;
   }
 
   .app-shell.is-sidebar-collapsed .mapboxgl-ctrl-bottom-left {
     left: 12px;
+  }
+
+  /* Attribution compact style */
+  .mapboxgl-ctrl-attrib {
+    background: rgb(255 255 255 / 0.80) !important;
+    border-radius: 6px !important;
+    font-size: 11px !important;
   }
 
 
@@ -1258,10 +1266,16 @@
 
   .map { position: absolute; inset: 0; z-index: 0; }
 
-  /* Nav controls moved to bottom-right, styled like FABs */
+  /* Nav controls centered vertically on the right */
   .mapboxgl-ctrl-bottom-right {
     right: 14px !important;
-    bottom: 168px !important;
+    bottom: auto !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+  }
+
+  .mapboxgl-ctrl-bottom-right .mapboxgl-ctrl {
+    margin: 0 !important;
   }
 
   .mapboxgl-ctrl-bottom-right .mapboxgl-ctrl-group {
