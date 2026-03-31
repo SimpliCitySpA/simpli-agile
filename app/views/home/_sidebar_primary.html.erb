@@ -255,11 +255,56 @@
 
     </div>
 
+    <div class="sidebar__config-panel" data-sidebar-target="configPanel" hidden>
+      <div class="sidebar__config-panel__label">PALETA DE COLORES</div>
+      <div class="sidebar__config-panel__palettes">
+        <button type="button" class="palette-picker__btn is-active"
+                data-action="click->sidebar#selectPalette"
+                data-sidebar-target="paletteBtn"
+                data-palette="blue">
+          <span class="palette-picker__swatch palette-picker__swatch--blue"></span>
+          <span>Azul</span>
+        </button>
+        <button type="button" class="palette-picker__btn"
+                data-action="click->sidebar#selectPalette"
+                data-sidebar-target="paletteBtn"
+                data-palette="orange">
+          <span class="palette-picker__swatch palette-picker__swatch--orange"></span>
+          <span>Naranja</span>
+        </button>
+      </div>
+
+      <div class="sidebar__config-panel__label" style="margin-top:14px">ESTILO DE MAPA</div>
+      <div class="sidebar__config-panel__styles">
+        <button type="button" class="map-style-picker__btn is-active"
+                data-action="click->sidebar#selectMapStyle"
+                data-sidebar-target="mapStyleBtn"
+                data-style-id="streets-v11">
+          <i class="fa-solid fa-map"></i><span>Clásico</span>
+        </button>
+        <button type="button" class="map-style-picker__btn"
+                data-action="click->sidebar#selectMapStyle"
+                data-sidebar-target="mapStyleBtn"
+                data-style-id="satellite-streets-v12">
+          <i class="fa-solid fa-satellite"></i><span>Satelital</span>
+        </button>
+        <button type="button" class="map-style-picker__btn"
+                data-action="click->sidebar#selectMapStyle"
+                data-sidebar-target="mapStyleBtn"
+                data-style-id="light-v11">
+          <i class="fa-solid fa-sun"></i><span>Claro</span>
+        </button>
+      </div>
+    </div>
+
     <div class="sidebar__bottom">
-      <button class="sidebar__link" type="button">
+      <button class="sidebar__link" type="button"
+              data-action="click->sidebar#toggleConfigPanel"
+              data-sidebar-target="configBtn">
         <span class="sidebar__icon"><i class="fa-solid fa-gear"></i></span> Configuración
       </button>
-      <button class="sidebar__link" type="button">
+      <button class="sidebar__link" type="button"
+              data-action="click->sidebar#openHelp">
         <span class="sidebar__icon"><i class="fa-regular fa-circle-question"></i></span> Ayuda
       </button>
     </div>

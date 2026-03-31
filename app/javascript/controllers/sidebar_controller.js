@@ -61,6 +61,10 @@ export default class extends Controller {
     "areaPerUnitSection",
     "noDataSection",
     "noAccessSection",
+    "configPanel",
+    "configBtn",
+    "mapStyleBtn",
+    "paletteBtn",
   ]
 
   connect() {
@@ -211,6 +215,33 @@ export default class extends Controller {
   scenarioBChanged(e) { return this.comparator.scenarioBChanged(e) }
 
   compareModeSelected(e) { return this.comparator.compareModeSelected(e) }
+
+  toggleConfigPanel() {
+    if (!this.hasConfigPanelTarget) return
+    this.configPanelTarget.hidden = !this.configPanelTarget.hidden
+  }
+
+  openHelp() {
+    window.dispatchEvent(new CustomEvent("help:open"))
+  }
+
+  selectMapStyle(e) {
+    const styleId = e.currentTarget.dataset.styleId
+    if (!styleId) return
+    this.mapStyleBtnTargets.forEach(btn => {
+      btn.classList.toggle("is-active", btn.dataset.styleId === styleId)
+    })
+    window.dispatchEvent(new CustomEvent("map:style-selected", { detail: { styleId } }))
+  }
+
+  selectPalette(e) {
+    const palette = e.currentTarget.dataset.palette
+    if (!palette) return
+    this.paletteBtnTargets.forEach(btn => {
+      btn.classList.toggle("is-active", btn.dataset.palette === palette)
+    })
+    window.dispatchEvent(new CustomEvent("map:palette-selected", { detail: { palette } }))
+  }
 
   toggle() {
     this.collapsed = !this.collapsed

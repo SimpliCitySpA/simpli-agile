@@ -1,3 +1,5 @@
+import { PALETTES } from "./palettes"
+
 export class MapDashboard {
   constructor(controller) {
     this.c = controller
@@ -34,14 +36,7 @@ export class MapDashboard {
     const total = features.length
     const maxCount = Math.max(...Object.values(counts))
 
-    const colors = {
-      0: "#e5e7eb",
-      1: "#dbeafe",
-      2: "#93c5fd",
-      3: "#3b82f6",
-      4: "#1d4ed8",
-      5: "#0b3aa4"
-    }
+    const colors = PALETTES[this.c._palette || "blue"]
 
     const isAccessibility = this.c._selectedLayerType === "accessibility"
     const isDelta = this.c._compareMode === "delta"

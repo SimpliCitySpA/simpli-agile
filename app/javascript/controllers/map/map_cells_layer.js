@@ -1,3 +1,5 @@
+import { fillColorExpr } from "./palettes"
+
 export class MapCellsLayer {
   constructor(controller) {
     this.c = controller
@@ -38,16 +40,7 @@ export class MapCellsLayer {
         type: "fill",
         source: "cells",
         paint: {
-          "fill-color": [
-            "match",
-            ["get", "class"],
-            1, "#dbeafe",
-            2, "#93c5fd",
-            3, "#3b82f6",
-            4, "#1d4ed8",
-            5, "#0b3aa4",
-            "#f3f4f6"
-          ],
+          "fill-color": fillColorExpr(this.c._palette || "blue"),
           "fill-opacity": [
             "case",
             ["==", ["get", "class"], 0],
@@ -132,6 +125,20 @@ export class MapCellsLayer {
     // Importante: el hover binding vive en MapHover, no acá,
     // pero acá es el lugar correcto para asegurarlo después de crear layers.
     this.c.hover?.bindCellsHoverTooltip?.()
+  }
+
+  applyPalette = (palette) => {
+    const expr = fillColorExpr(palette)
+    const maps = [this.c.map]
+    if (this.c.compareSlider?.mapLeft) maps.push(this.c.compareSlider.mapLeft)
+    if (this.c.compareSlider?.mapRight) maps.push(this.c.compareSlider.mapRight)
+    if (this.c.compareSplit?.mapTop) maps.push(this.c.compareSplit.mapTop)
+    if (this.c.compareSplit?.mapBottom) maps.push(this.c.compareSplit.mapBottom)
+    maps.forEach(map => {
+      if (map?.getLayer("cells-fill")) {
+        map.setPaintProperty("cells-fill", "fill-color", expr)
+      }
+    })
   }
 
   ensureLocatorOverlays = () => {
