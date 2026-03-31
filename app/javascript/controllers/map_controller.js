@@ -112,6 +112,7 @@ export default class extends Controller {
       window.addEventListener("cell:selection_clear", this.onCellSelectionClear)
       window.addEventListener("project:hover", this.onProjectHover)
       window.addEventListener("project:hover_end", this.onProjectHoverEnd)
+      window.addEventListener("map:style-selected", this.onStyleSelected)
 
       window._mapReady = true
       window.dispatchEvent(new CustomEvent("map:ready"))
@@ -143,7 +144,10 @@ export default class extends Controller {
     window.removeEventListener("cell:selection_clear", this.onCellSelectionClear)
     window.removeEventListener("project:hover", this.onProjectHover)
     window.removeEventListener("project:hover_end", this.onProjectHoverEnd)
+    window.removeEventListener("map:style-selected", this.onStyleSelected)
   }
+
+  onStyleSelected = (e) => this.styleManager?.select(e.detail.styleId)
 
   onRegionSelected = (e) => this.adminLayers.onRegionSelected(e)
   onRegionCleared = () => this.adminLayers.onRegionCleared()

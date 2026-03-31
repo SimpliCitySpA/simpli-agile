@@ -564,6 +564,31 @@
     line-height: 1.4;
   }
 
+  .sidebar__config-panel {
+    padding: 14px 18px 10px;
+    border-top: 1px solid rgb(9 9 11 / 0.07);
+  }
+
+  .sidebar__config-panel__label {
+    font-size: 10px;
+    font-weight: 600;
+    color: #a1a1aa;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 10px;
+  }
+
+  .sidebar__config-panel__styles {
+    display: flex;
+    gap: 4px;
+  }
+
+  .sidebar__config-panel .map-style-picker__btn {
+    flex: 1;
+    padding: 8px 6px;
+    font-size: 11px;
+  }
+
   .sidebar__no-access {
     padding: 0 18px;
   }

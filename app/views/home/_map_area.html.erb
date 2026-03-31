@@ -32,30 +32,6 @@
 
   <%# Botones flotantes (derecha) %>
   <div class="map-fab">
-    <div class="map-fab__style-wrap">
-      <button type="button"
-              class="map-fab__btn"
-              aria-label="Estilo de mapa"
-              data-action="click->map#toggleStylePicker"
-              data-map-target="stylePickerBtn">
-        <i class="fa-solid fa-layer-group"></i>
-      </button>
-
-      <div class="map-style-picker" data-map-target="stylePickerPanel" hidden>
-        <button type="button" class="map-style-picker__btn is-active" data-action="click->map#selectStyle" data-style-id="streets-v11">
-          <i class="fa-solid fa-map"></i>
-          <span>Clásico</span>
-        </button>
-        <button type="button" class="map-style-picker__btn" data-action="click->map#selectStyle" data-style-id="satellite-streets-v12">
-          <i class="fa-solid fa-satellite"></i>
-          <span>Satelital</span>
-        </button>
-        <button type="button" class="map-style-picker__btn" data-action="click->map#selectStyle" data-style-id="light-v11">
-          <i class="fa-solid fa-sun"></i>
-          <span>Claro</span>
-        </button>
-      </div>
-    </div>
 
     <button type="button"
             class="map-fab__btn"

@@ -61,6 +61,9 @@ export default class extends Controller {
     "areaPerUnitSection",
     "noDataSection",
     "noAccessSection",
+    "configPanel",
+    "configBtn",
+    "mapStyleBtn",
   ]
 
   connect() {
@@ -211,6 +214,20 @@ export default class extends Controller {
   scenarioBChanged(e) { return this.comparator.scenarioBChanged(e) }
 
   compareModeSelected(e) { return this.comparator.compareModeSelected(e) }
+
+  toggleConfigPanel() {
+    if (!this.hasConfigPanelTarget) return
+    this.configPanelTarget.hidden = !this.configPanelTarget.hidden
+  }
+
+  selectMapStyle(e) {
+    const styleId = e.currentTarget.dataset.styleId
+    if (!styleId) return
+    this.mapStyleBtnTargets.forEach(btn => {
+      btn.classList.toggle("is-active", btn.dataset.styleId === styleId)
+    })
+    window.dispatchEvent(new CustomEvent("map:style-selected", { detail: { styleId } }))
+  }
 
   toggle() {
     this.collapsed = !this.collapsed

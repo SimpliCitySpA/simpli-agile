@@ -255,8 +255,34 @@
 
     </div>
 
+    <div class="sidebar__config-panel" data-sidebar-target="configPanel" hidden>
+      <div class="sidebar__config-panel__label">ESTILO DE MAPA</div>
+      <div class="sidebar__config-panel__styles">
+        <button type="button" class="map-style-picker__btn is-active"
+                data-action="click->sidebar#selectMapStyle"
+                data-sidebar-target="mapStyleBtn"
+                data-style-id="streets-v11">
+          <i class="fa-solid fa-map"></i><span>Clásico</span>
+        </button>
+        <button type="button" class="map-style-picker__btn"
+                data-action="click->sidebar#selectMapStyle"
+                data-sidebar-target="mapStyleBtn"
+                data-style-id="satellite-streets-v12">
+          <i class="fa-solid fa-satellite"></i><span>Satelital</span>
+        </button>
+        <button type="button" class="map-style-picker__btn"
+                data-action="click->sidebar#selectMapStyle"
+                data-sidebar-target="mapStyleBtn"
+                data-style-id="light-v11">
+          <i class="fa-solid fa-sun"></i><span>Claro</span>
+        </button>
+      </div>
+    </div>
+
     <div class="sidebar__bottom">
-      <button class="sidebar__link" type="button">
+      <button class="sidebar__link" type="button"
+              data-action="click->sidebar#toggleConfigPanel"
+              data-sidebar-target="configBtn">
         <span class="sidebar__icon"><i class="fa-solid fa-gear"></i></span> Configuración
       </button>
       <button class="sidebar__link" type="button">
