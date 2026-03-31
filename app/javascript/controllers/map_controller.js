@@ -113,6 +113,7 @@ export default class extends Controller {
       window.addEventListener("project:hover", this.onProjectHover)
       window.addEventListener("project:hover_end", this.onProjectHoverEnd)
       window.addEventListener("map:style-selected", this.onStyleSelected)
+      window.addEventListener("map:palette-selected", this.onPaletteSelected)
 
       window._mapReady = true
       window.dispatchEvent(new CustomEvent("map:ready"))
@@ -145,9 +146,18 @@ export default class extends Controller {
     window.removeEventListener("project:hover", this.onProjectHover)
     window.removeEventListener("project:hover_end", this.onProjectHoverEnd)
     window.removeEventListener("map:style-selected", this.onStyleSelected)
+    window.removeEventListener("map:palette-selected", this.onPaletteSelected)
   }
 
   onStyleSelected = (e) => this.styleManager?.select(e.detail.styleId)
+
+  onPaletteSelected = (e) => {
+    const palette = e.detail.palette
+    this._palette = palette
+    this.cellsLayer?.applyPalette(palette)
+    this.legend?.render()
+    this.dashboard?.render()
+  }
 
   onRegionSelected = (e) => this.adminLayers.onRegionSelected(e)
   onRegionCleared = () => this.adminLayers.onRegionCleared()

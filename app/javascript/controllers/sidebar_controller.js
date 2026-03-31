@@ -64,6 +64,7 @@ export default class extends Controller {
     "configPanel",
     "configBtn",
     "mapStyleBtn",
+    "paletteBtn",
   ]
 
   connect() {
@@ -231,6 +232,15 @@ export default class extends Controller {
       btn.classList.toggle("is-active", btn.dataset.styleId === styleId)
     })
     window.dispatchEvent(new CustomEvent("map:style-selected", { detail: { styleId } }))
+  }
+
+  selectPalette(e) {
+    const palette = e.currentTarget.dataset.palette
+    if (!palette) return
+    this.paletteBtnTargets.forEach(btn => {
+      btn.classList.toggle("is-active", btn.dataset.palette === palette)
+    })
+    window.dispatchEvent(new CustomEvent("map:palette-selected", { detail: { palette } }))
   }
 
   toggle() {

@@ -589,6 +589,55 @@
     font-size: 11px;
   }
 
+  .sidebar__config-panel__palettes {
+    display: flex;
+    gap: 6px;
+  }
+
+  .palette-picker__btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
+    padding: 8px 6px;
+    border: 1.5px solid #e4e4e7;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    font-size: 11px;
+    color: #52525b;
+    font-weight: 500;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .palette-picker__btn:hover {
+    background: #f4f4f5;
+    color: #18181b;
+  }
+
+  .palette-picker__btn.is-active {
+    border-color: #233141;
+    background: #f0f4f8;
+    color: #233141;
+    font-weight: 600;
+  }
+
+  .palette-picker__swatch {
+    display: block;
+    width: 100%;
+    height: 10px;
+    border-radius: 3px;
+  }
+
+  .palette-picker__swatch--blue {
+    background: linear-gradient(to right, #dbeafe, #93c5fd, #3b82f6, #1d4ed8, #0b3aa4);
+  }
+
+  .palette-picker__swatch--orange {
+    background: linear-gradient(to right, #ffedd5, #fdba74, #f97316, #c2410c, #7c2d12);
+  }
+
   .sidebar__no-access {
     padding: 0 18px;
   }

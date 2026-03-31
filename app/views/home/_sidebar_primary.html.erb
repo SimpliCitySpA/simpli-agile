@@ -256,7 +256,25 @@
     </div>
 
     <div class="sidebar__config-panel" data-sidebar-target="configPanel" hidden>
-      <div class="sidebar__config-panel__label">ESTILO DE MAPA</div>
+      <div class="sidebar__config-panel__label">PALETA DE COLORES</div>
+      <div class="sidebar__config-panel__palettes">
+        <button type="button" class="palette-picker__btn is-active"
+                data-action="click->sidebar#selectPalette"
+                data-sidebar-target="paletteBtn"
+                data-palette="blue">
+          <span class="palette-picker__swatch palette-picker__swatch--blue"></span>
+          <span>Azul</span>
+        </button>
+        <button type="button" class="palette-picker__btn"
+                data-action="click->sidebar#selectPalette"
+                data-sidebar-target="paletteBtn"
+                data-palette="orange">
+          <span class="palette-picker__swatch palette-picker__swatch--orange"></span>
+          <span>Naranja</span>
+        </button>
+      </div>
+
+      <div class="sidebar__config-panel__label" style="margin-top:14px">ESTILO DE MAPA</div>
       <div class="sidebar__config-panel__styles">
         <button type="button" class="map-style-picker__btn is-active"
                 data-action="click->sidebar#selectMapStyle"
