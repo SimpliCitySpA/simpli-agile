@@ -36,7 +36,9 @@ export function createRegionsMunicipalities(controller) {
 
           selector.innerHTML = "<option>Seleccionar región...</option>"
 
-          data.forEach(region => {
+          // TEMPORAL: solo mostrar La Araucanía
+          const filteredRegions = data.filter(r => String(r.region_code) === "9")
+          filteredRegions.forEach(region => {
             const option = document.createElement("option")
             option.value = region.region_code
             option.textContent = region.name
@@ -85,7 +87,9 @@ export function createRegionsMunicipalities(controller) {
             ? selector.value : null
           selector.innerHTML = "<option>Seleccionar comuna...</option>"
 
-          data.forEach(municipality => {
+          // TEMPORAL: solo mostrar Pucón
+          const filteredMunicipalities = data.filter(m => String(m.municipality_code) === "9115")
+          filteredMunicipalities.forEach(municipality => {
             const option = document.createElement("option")
             option.value = municipality.municipality_code
             option.textContent = municipality.name
