@@ -518,6 +518,45 @@ export class MapAdminLayers {
     this.c._hasStudyArea = false
   }
 
+  applyStreetsOnTopToMap(map, enabled) {
+    const layers = [
+      "municipalities-fill", "municipalities-outline", "municipalities-hover",
+      "municipality-mask-fill",
+      "selected-municipality-outline",
+      "cells-fill", "cells-outline", "cells-hover", "cells-project-outline",
+      "study-area-glow", "study-area-line",
+      "cells-parent-fill", "cells-draft-hatch"
+    ]
+    if (!enabled) return
+    const ourLayerSet = new Set(layers)
+    const allStyleLayers = map.getStyle().layers
+    layers.forEach(id => { if (map.getLayer(id)) map.moveLayer(id) })
+    allStyleLayers
+      .filter(l =>
+        !ourLayerSet.has(l.id) && l.type === "line" &&
+        (l.id.startsWith("road-") || l.id.startsWith("bridge-") || l.id.startsWith("tunnel-") || l.id.startsWith("traffic-")) &&
+        !l.id.includes("path") && !l.id.includes("pedestrian") && !l.id.includes("sidewalk")
+      )
+      .forEach(l => { if (map.getLayer(l.id)) map.moveLayer(l.id) })
+    allStyleLayers
+      .filter(l =>
+        !ourLayerSet.has(l.id) && l.type === "symbol" &&
+        !l.id.includes("poi") && !l.id.includes("airport") && !l.id.includes("transit")
+      )
+      .forEach(l => { if (map.getLayer(l.id)) map.moveLayer(l.id) })
+    allStyleLayers
+      .filter(l =>
+        !ourLayerSet.has(l.id) && l.type === "line" &&
+        (l.id.startsWith("road-") || l.id.startsWith("bridge-") || l.id.startsWith("tunnel-") || l.id.startsWith("traffic-")) &&
+        !l.id.includes("path") && !l.id.includes("pedestrian") && !l.id.includes("sidewalk")
+      )
+      .forEach(l => {
+        if (!map.getLayer(l.id)) return
+        const current = map.getPaintProperty(l.id, "line-opacity")
+        if (typeof current !== "object") map.setPaintProperty(l.id, "line-opacity", 1.0)
+      })
+  }
+
   applyStreetsOnTop(enabled) {
     const map = this.c.map
     // Order from bottom to top: municipalities → municipality-outline → cells → study-area → locator
