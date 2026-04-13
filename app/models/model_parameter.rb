@@ -1,0 +1,3 @@
+class ModelParameter < ApplicationRecord
+  belongs_to :municipality, foreign_key: :municipality_code, primary_key: :municipality_code
+end

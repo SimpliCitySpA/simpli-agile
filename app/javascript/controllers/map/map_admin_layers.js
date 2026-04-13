@@ -87,13 +87,16 @@ export class MapAdminLayers {
       })
     }
 
+    // TEMPORAL: Pucón (9115) verde, resto gris
+    const munActiveColor = ["==", ["to-string", ["get", "municipality_code"]], "9115"]
+
     if (!map.getLayer("municipalities-fill")) {
       map.addLayer({
         id: "municipalities-fill",
         type: "fill",
         source: "municipalities",
         paint: {
-          "fill-color": "#2bf89a",
+          "fill-color": ["case", munActiveColor, "#2bf89a", "#9ca3af"],
           "fill-opacity": 0.25
         }
       })
@@ -105,7 +108,7 @@ export class MapAdminLayers {
         type: "line",
         source: "municipalities",
         paint: {
-          "line-color": "#1cb66e",
+          "line-color": ["case", munActiveColor, "#1cb66e", "#6b7280"],
           "line-width": 2
         }
       })
@@ -120,8 +123,8 @@ export class MapAdminLayers {
           "fill-color": "#2bf89a",
           "fill-opacity": [
             "case",
-            ["boolean", ["feature-state", "hover"], false],
-            0.30,
+            ["all", munActiveColor, ["boolean", ["feature-state", "hover"], false]],
+            0.3,
             0
           ]
         }
@@ -224,13 +227,16 @@ export class MapAdminLayers {
           map.addSource("regions", { type: "geojson", data: fc, promoteId: "region_code"})
         }
 
+        // TEMPORAL: Araucanía (9) verde, resto gris
+        const regionActiveColor = ["==", ["to-string", ["get", "region_code"]], "9"]
+
         if (!map.getLayer("regions-fill")) {
           map.addLayer({
             id: "regions-fill",
             type: "fill",
             source: "regions",
             paint: {
-              "fill-color": "#2bf89a",
+              "fill-color": ["case", regionActiveColor, "#2bf89a", "#9ca3af"],
               "fill-opacity": 0.5
             }
           })
@@ -242,7 +248,7 @@ export class MapAdminLayers {
             type: "line",
             source: "regions",
             paint: {
-              "line-color": "#1cb66e",
+              "line-color": ["case", regionActiveColor, "#1cb66e", "#6b7280"],
               "line-width": 2
             }
           })
@@ -257,7 +263,7 @@ export class MapAdminLayers {
               "fill-color": "#2bf89a",
               "fill-opacity": [
                 "case",
-                ["boolean", ["feature-state", "hover"], false],
+                ["all", regionActiveColor, ["boolean", ["feature-state", "hover"], false]],
                 0.3,
                 0
               ]
@@ -289,6 +295,9 @@ export class MapAdminLayers {
       const regionCode = f.properties?.region_code
       if (!regionCode) return
 
+      // TEMPORAL: solo permitir click en La Araucanía
+      if (String(regionCode) !== "9") return
+
       window.dispatchEvent(new CustomEvent("region:clicked", {
         detail: { region_code: regionCode }
       }))
@@ -305,6 +314,9 @@ export class MapAdminLayers {
 
       const munCode = f.properties?.municipality_code
       if (!munCode) return
+
+      // TEMPORAL: solo permitir click en Pucón
+      if (String(munCode) !== "9115") return
 
       window.dispatchEvent(new CustomEvent("municipality:clicked", {
         detail: { municipality_code: munCode }

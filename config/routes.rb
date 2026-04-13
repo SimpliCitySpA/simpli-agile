@@ -54,6 +54,13 @@ Rails.application.routes.draw do
 
   resources :opportunities, only: [:index]
 
+  resources :simulation_agent_types, only: [:index]
+  resources :simulation_requests, only: [:create] do
+    member do
+      get :status
+    end
+  end
+
   patch "users/default_municipality", to: "users#update_default_municipality"
 
   post "analytics/events", to: "analytics_events#create"

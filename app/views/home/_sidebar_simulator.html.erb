@@ -1,0 +1,45 @@
+<!-- Sidebar secundaria (Simulador de agentes) -->
+<aside class="sidebar sidebar--secondary" data-sidebar-target="simulatorPanel" hidden>
+  <div class="sidebar__top">
+    <button type="button" class="sidebar__close-btn" data-action="click->sidebar#toggleSimulator">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div class="sidebar__header">Simulador de agentes</div>
+
+    <div class="sidebar__section">
+      <p class="sidebar__hint">
+        Ingresa cuántos agentes de cada tipo quieres simular en el escenario actual.
+      </p>
+    </div>
+
+    <div data-sidebar-target="agentInputsContainer"></div>
+
+    <div class="sidebar__section">
+      <button
+        type="button"
+        class="sidebar__primary-btn"
+        data-sidebar-target="simulateBtn"
+        data-action="click->sidebar#runSimulation"
+      >
+        <i class="fa-solid fa-play"></i> Simular
+      </button>
+    </div>
+  </div>
+</aside>
+
+<!-- Modal resultado simulación -->
+<div class="modal" data-sidebar-target="simulationResultModal" hidden>
+  <div class="modal__backdrop" data-action="click->sidebar#closeSimulationModal"></div>
+  <div class="modal__panel" style="max-width:380px; text-align:center; padding:32px 24px;">
+    <div style="font-size:40px; margin-bottom:12px;">✅</div>
+    <div class="modal__title" style="font-size:18px;">Simulación completada</div>
+    <p style="color:#64748b; font-size:14px; margin-bottom:20px;">
+      Los agentes fueron localizados y las accesibilidades actualizadas.
+    </p>
+    <div class="modal__actions" style="justify-content:center;">
+      <button type="button" class="sidebar__primary-btn" data-action="click->sidebar#closeSimulationModal">
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>
