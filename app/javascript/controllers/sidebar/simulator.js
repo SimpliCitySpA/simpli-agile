@@ -65,6 +65,10 @@ export function createSimulator(controller) {
 
       if (agents.length === 0) return alert("Ingresa al menos un agente para simular.")
 
+      const btn = controller.simulateBtnTarget
+      btn.disabled = true
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Simulando...'
+
       const csrf = document.querySelector('meta[name="csrf-token"]').content
 
       const resp = await fetch("/simulation_requests", {
@@ -75,11 +79,58 @@ export function createSimulator(controller) {
 
       const json = await resp.json()
       if (!resp.ok) {
+        btn.disabled = false
+        btn.innerHTML = '<i class="fa-solid fa-play"></i> Simular'
         return alert(json.error || "Error al iniciar la simulación.")
       }
 
       controller.agentInputTargets.forEach(input => { input.value = "" })
-      alert("Simulación enviada correctamente.")
+      _pollSimulationRequests(json.simulation_request_ids, btn, controller)
     }
   }
+}
+
+function _pollSimulationRequests(requestIds, btn, controller) {
+  const INTERVAL_MS = 3000
+
+  const statusMap = {}
+  requestIds.forEach(id => { statusMap[id] = "pending" })
+
+  const csrf = document.querySelector('meta[name="csrf-token"]').content
+
+  const checkAll = async () => {
+    const pending = Object.entries(statusMap)
+      .filter(([, s]) => s !== "completed" && s !== "failed")
+      .map(([id]) => id)
+
+    await Promise.all(pending.map(async id => {
+      try {
+        const r = await fetch(`/simulation_requests/${id}/status`, {
+          headers: { "X-CSRF-Token": csrf }
+        })
+        const data = await r.json()
+        statusMap[id] = data.status
+      } catch (_) { /* keep polling */ }
+    }))
+
+    const statuses = Object.values(statusMap)
+    const allDone = statuses.every(s => s === "completed" || s === "failed")
+
+    if (!allDone) {
+      setTimeout(checkAll, INTERVAL_MS)
+      return
+    }
+
+    btn.disabled = false
+    btn.innerHTML = '<i class="fa-solid fa-play"></i> Simular'
+
+    const anyFailed = statuses.some(s => s === "failed")
+    if (anyFailed) {
+      alert("Una o más simulaciones fallaron. Revisa e intenta de nuevo.")
+    } else {
+      controller.simulationResultModalTarget.hidden = false
+    }
+  }
+
+  setTimeout(checkAll, INTERVAL_MS)
 }

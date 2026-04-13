@@ -22,7 +22,7 @@ class SimulationRunner
     @placements = Hash.new { |h, k| h[k] = { units: 0, surface: 0.0 } }
 
     n_agents    = @request.n_agents
-    update_freq = [n_agents / 2, 1].max   # at most 2 mid-sim recalculations
+    update_freq = 50
     rng         = Random.new(@request.seed || rand(100_000))
 
     n_agents.times do |i|

@@ -26,3 +26,20 @@
     </div>
   </div>
 </aside>
+
+<!-- Modal resultado simulación -->
+<div class="modal" data-sidebar-target="simulationResultModal" hidden>
+  <div class="modal__backdrop" data-action="click->sidebar#closeSimulationModal"></div>
+  <div class="modal__panel" style="max-width:380px; text-align:center; padding:32px 24px;">
+    <div style="font-size:40px; margin-bottom:12px;">✅</div>
+    <div class="modal__title" style="font-size:18px;">Simulación completada</div>
+    <p style="color:#64748b; font-size:14px; margin-bottom:20px;">
+      Los agentes fueron localizados y las accesibilidades actualizadas.
+    </p>
+    <div class="modal__actions" style="justify-content:center;">
+      <button type="button" class="sidebar__primary-btn" data-action="click->sidebar#closeSimulationModal">
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>

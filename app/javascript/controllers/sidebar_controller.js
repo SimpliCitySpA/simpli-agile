@@ -68,6 +68,8 @@ export default class extends Controller {
     "paletteBtn",
     "simulatorPanel",
     "simulatorBtn",
+    "simulateBtn",
+    "simulationResultModal",
     "agentInputsContainer",
     "agentInput",
   ]
@@ -207,6 +209,9 @@ export default class extends Controller {
   loadAgentTypesIntoPanel() { return this.simulator.loadAgentTypesIntoPanel() }
   toggleSimulator() { return this.simulator.toggleSimulator() }
   runSimulation() { return this.simulator.runSimulation() }
+  closeSimulationModal() {
+    if (this.hasSimulationResultModalTarget) this.simulationResultModalTarget.hidden = true
+  }
 
   refreshProjectsLists() { return this.projectLists.refreshProjectsLists() }
 
