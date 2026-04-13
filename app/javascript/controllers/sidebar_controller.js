@@ -5,6 +5,7 @@ import { createRegionsMunicipalities } from "controllers/sidebar/regions_municip
 import { createScenarios } from "controllers/sidebar/scenarios"
 import { createOpportunitiesLayers } from "controllers/sidebar/opportunities_layers"
 import { createLocator } from "controllers/sidebar/locator"
+import { createSimulator } from "controllers/sidebar/simulator"
 import { createProjectLists } from "controllers/sidebar/project_lists"
 import { createPublishDelete } from "controllers/sidebar/publish_delete"
 import { createComparator } from "controllers/sidebar/comparator"
@@ -65,6 +66,10 @@ export default class extends Controller {
     "configBtn",
     "mapStyleBtn",
     "paletteBtn",
+    "simulatorPanel",
+    "simulatorBtn",
+    "agentInputsContainer",
+    "agentInput",
   ]
 
   connect() {
@@ -74,6 +79,7 @@ export default class extends Controller {
     this.scenarios = createScenarios(this)
     this.opportunitiesLayers = createOpportunitiesLayers(this)
     this.locator = createLocator(this)
+    this.simulator = createSimulator(this)
     this.projectLists = createProjectLists(this)
     this.publishDelete = createPublishDelete(this)
     this.comparator = createComparator(this)
@@ -198,6 +204,10 @@ export default class extends Controller {
 
   addProject() { return this.locator.addProject() }
 
+  loadAgentTypesIntoPanel() { return this.simulator.loadAgentTypesIntoPanel() }
+  toggleSimulator() { return this.simulator.toggleSimulator() }
+  runSimulation() { return this.simulator.runSimulation() }
+
   refreshProjectsLists() { return this.projectLists.refreshProjectsLists() }
 
   recalculateAccessibilities() { return this.publishDelete.recalculateAccessibilities() }
@@ -255,6 +265,9 @@ export default class extends Controller {
     // ✅ Si el localizador está abierto, NO lo cierres: solo muévelo
     if (this.hasLocatorPanelTarget && !this.locatorPanelTarget.hidden) {
       this.locatorPanelTarget.style.left = this.collapsed ? "0px" : "304px"
+    }
+    if (this.hasSimulatorPanelTarget && !this.simulatorPanelTarget.hidden) {
+      this.simulatorPanelTarget.style.left = this.collapsed ? "0px" : "304px"
     }
 
     // Mantén esto por si el map_controller necesita resize
@@ -372,6 +385,9 @@ export default class extends Controller {
 
     if (this.hasLocatorBtnTarget) {
       this.locatorBtnTarget.disabled = isBase
+    }
+    if (this.hasSimulatorBtnTarget) {
+      this.simulatorBtnTarget.disabled = isBase
     }
 
     // Oportunidad: visible cuando hay escenario válido O cuando estamos en comparador

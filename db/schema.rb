@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_03_26_201404) do
+ActiveRecord::Schema[7.1].define(version: 2026_04_13_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "postgis"
@@ -66,6 +66,18 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_26_201404) do
     t.index ["visual_mode_id"], name: "index_bins_on_visual_mode_id"
   end
 
+  create_table "cell_norms", force: :cascade do |t|
+    t.string "h3", null: false
+    t.bigint "norm_scenario_id", null: false
+    t.float "remanente_efectivo_m2"
+    t.float "remanente_huella_m2"
+    t.string "location_type"
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["h3", "norm_scenario_id"], name: "uq_cell_norms", unique: true
+    t.index ["norm_scenario_id"], name: "index_cell_norms_on_norm_scenario_id"
+  end
+
   create_table "cells", primary_key: "h3", id: :string, force: :cascade do |t|
     t.geometry "geometry", limit: {:srid=>4326, :type=>"geometry"}
     t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
@@ -84,6 +96,16 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_26_201404) do
     t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.index ["h3"], name: "index_info_cells_on_h3"
     t.index ["opportunity_code"], name: "index_info_cells_on_opportunity_code"
+  end
+
+  create_table "model_parameters", force: :cascade do |t|
+    t.integer "municipality_code", null: false
+    t.string "agent_type_code", null: false
+    t.jsonb "variables", default: []
+    t.jsonb "coefficients", default: {}
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["municipality_code", "agent_type_code"], name: "uq_model_parameters", unique: true
   end
 
   create_table "municipalities", primary_key: "municipality_code", id: :serial, force: :cascade do |t|
@@ -166,6 +188,34 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_26_201404) do
     t.index ["user_id"], name: "index_scenarios_on_user_id"
   end
 
+  create_table "simulation_agent_types", force: :cascade do |t|
+    t.integer "municipality_code", null: false
+    t.string "code", null: false
+    t.string "name", null: false
+    t.string "opportunity_code", null: false
+    t.string "location_restriction"
+    t.string "agglomeration_method"
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.float "surface_per_unit_m2"
+    t.float "land_per_unit_m2"
+    t.index ["municipality_code", "code"], name: "uq_agent_types", unique: true
+  end
+
+  create_table "simulation_requests", force: :cascade do |t|
+    t.bigint "scenario_id", null: false
+    t.string "agent_type_code", null: false
+    t.integer "n_agents", null: false
+    t.string "status", default: "pending"
+    t.text "error_message"
+    t.integer "seed"
+    t.datetime "started_at"
+    t.datetime "completed_at"
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["scenario_id"], name: "index_simulation_requests_on_scenario_id"
+  end
+
   create_table "travel_modes", force: :cascade do |t|
     t.integer "municipality_code", null: false
     t.string "mode"
@@ -227,9 +277,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_26_201404) do
   add_foreign_key "availabilities", "municipalities", column: "municipality_code", primary_key: "municipality_code"
   add_foreign_key "availabilities", "users"
   add_foreign_key "bins", "visual_modes"
+  add_foreign_key "cell_norms", "cells", column: "h3", primary_key: "h3"
+  add_foreign_key "cell_norms", "scenarios", column: "norm_scenario_id"
   add_foreign_key "cells", "municipalities", column: "municipality_code", primary_key: "municipality_code"
   add_foreign_key "info_cells", "cells", column: "h3", primary_key: "h3"
   add_foreign_key "info_cells", "opportunities", column: "opportunity_code", primary_key: "opportunity_code"
+  add_foreign_key "model_parameters", "municipalities", column: "municipality_code", primary_key: "municipality_code"
   add_foreign_key "municipalities", "regions", column: "region_code", primary_key: "region_code"
   add_foreign_key "projects", "cells", column: "h3", primary_key: "h3"
   add_foreign_key "projects", "opportunities", column: "opportunity_code", primary_key: "opportunity_code"
@@ -240,6 +293,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_03_26_201404) do
   add_foreign_key "scenarios", "municipalities", column: "municipality_code", primary_key: "municipality_code"
   add_foreign_key "scenarios", "scenarios", column: "parent_id"
   add_foreign_key "scenarios", "users"
+  add_foreign_key "simulation_agent_types", "municipalities", column: "municipality_code", primary_key: "municipality_code"
+  add_foreign_key "simulation_agent_types", "opportunities", column: "opportunity_code", primary_key: "opportunity_code"
+  add_foreign_key "simulation_requests", "scenarios"
   add_foreign_key "travel_modes", "municipalities", column: "municipality_code", primary_key: "municipality_code"
   add_foreign_key "travel_times", "cells", column: "h3_destiny", primary_key: "h3"
   add_foreign_key "travel_times", "cells", column: "h3_origin", primary_key: "h3"

@@ -23,6 +23,7 @@ module Scenarios
         Accessibility.where(scenario_id: ids).delete_all
         ScenarioCell.where(scenario_id: ids).delete_all
         Project.where(scenario_id: ids).delete_all
+        SimulationRequest.where(scenario_id: ids).delete_all
 
         # 2) borrar escenarios (hijos primero no es necesario si hacemos IN, pero ok)
         Scenario.where(id: ids, user_id: @user.id).delete_all
