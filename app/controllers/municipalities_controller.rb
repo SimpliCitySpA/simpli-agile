@@ -72,9 +72,15 @@ class MunicipalitiesController < ApplicationController
     }
   end
 
+  def available
+    mun_codes = Scenario.where(status: "base").distinct.pluck(:municipality_code)
+    region_codes = Municipality.where(municipality_code: mun_codes).distinct.pluck(:region_code)
+    render json: { municipality_codes: mun_codes, region_codes: region_codes }
+  end
+
   def base_scenario
     mun_code = params[:municipality_code]
-    base = Scenario.find_by(user_id: system_user&.id, municipality_code: mun_code)
+    base = Scenario.find_by(status: "base", municipality_code: mun_code)
     render json: { scenario_id: base&.id }
   end
 

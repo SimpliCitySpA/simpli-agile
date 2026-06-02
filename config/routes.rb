@@ -21,6 +21,7 @@ Rails.application.routes.draw do
     collection do
       get :names
       get :focus
+      get :available
       get :base_scenario
       get :access
       get :co2
