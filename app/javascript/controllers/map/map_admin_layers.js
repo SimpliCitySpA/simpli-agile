@@ -551,6 +551,7 @@ export class MapAdminLayers {
       "municipality-mask-fill",
       "selected-municipality-outline",
       "cells-fill", "cells-outline", "cells-hover", "cells-project-outline",
+      "blocks-fill", "blocks-outline", "blocks-hover",
       "study-area-glow", "study-area-line",
       "cells-parent-fill", "cells-draft-hatch"
     ]
@@ -586,12 +587,13 @@ export class MapAdminLayers {
 
   applyStreetsOnTop(enabled) {
     const map = this.c.map
-    // Order from bottom to top: municipalities → municipality-outline → cells → study-area → locator
+    // Order from bottom to top: municipalities → municipality-outline → cells/blocks → study-area → locator
     const layers = [
       "municipalities-fill", "municipalities-outline", "municipalities-hover",
       "municipality-mask-fill",
       "selected-municipality-outline",
       "cells-fill", "cells-outline", "cells-hover", "cells-project-outline",
+      "blocks-fill", "blocks-outline", "blocks-hover",
       "study-area-glow", "study-area-line",
       "cells-parent-fill", "cells-draft-hatch"
     ]

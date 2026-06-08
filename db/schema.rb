@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_06_04_000005) do
+ActiveRecord::Schema[7.1].define(version: 2026_06_04_000007) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "postgis"
@@ -305,7 +305,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_04_000005) do
     t.integer "municipality_code", null: false
     t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
-    t.index ["municipality_code", "opportunity_code", "mode_code"], name: "idx_visual_modes_unique_combo", unique: true
+    t.boolean "is_block", default: false, null: false
+    t.index ["municipality_code", "opportunity_code", "mode_code", "is_block"], name: "idx_visual_modes_unique_combo", unique: true
   end
 
   add_foreign_key "accessibilities", "cells", column: "h3", primary_key: "h3"

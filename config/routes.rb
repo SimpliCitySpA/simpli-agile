@@ -40,6 +40,13 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :blocks, only: [] do
+    collection do
+      get :thematic
+      get :accessibility
+    end
+  end
+
   resources :scenarios, only: [:create, :destroy] do
     collection do
       get :names

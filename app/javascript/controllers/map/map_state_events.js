@@ -83,12 +83,14 @@ export class MapStateEvents {
   }
 
   onLayerCleared = () => {
-    // apaga visibilidad
     this.c.setCellsVisible(false)
+    this.c.setBlocksVisible(false)
 
-    // limpia data para que no quede "pegado"
-    const src = this.c.map.getSource("cells")
-    if (src) src.setData({ type: "FeatureCollection", features: [] })
+    const cellsSrc = this.c.map.getSource("cells")
+    if (cellsSrc) cellsSrc.setData({ type: "FeatureCollection", features: [] })
+
+    const blocksSrc = this.c.map.getSource("blocks")
+    if (blocksSrc) blocksSrc.setData({ type: "FeatureCollection", features: [] })
 
     this.c._cellsBreaks = null
     this.c._cellsFeatures = null
