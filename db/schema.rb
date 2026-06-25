@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_04_30_000001) do
+ActiveRecord::Schema[7.1].define(version: 2026_06_25_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
   enable_extension "postgis"
@@ -68,6 +68,30 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_30_000001) do
     t.index ["visual_mode_id"], name: "index_bins_on_visual_mode_id"
   end
 
+  create_table "block_accessibilities", force: :cascade do |t|
+    t.integer "block_id", null: false
+    t.string "travel_mode", null: false
+    t.string "opportunity_code", null: false
+    t.string "accessibility_type"
+    t.float "value"
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["block_id"], name: "index_block_accessibilities_on_block_id"
+    t.index ["opportunity_code"], name: "index_block_accessibilities_on_opportunity_code"
+  end
+
+  create_table "blocks", force: :cascade do |t|
+    t.integer "show_id"
+    t.integer "municipality_code", null: false
+    t.geometry "geometry", limit: {:srid=>4326, :type=>"geometry"}
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.integer "block_id", null: false
+    t.index ["block_id"], name: "index_blocks_on_block_id", unique: true
+    t.index ["geometry"], name: "index_blocks_on_geometry", using: :gist
+    t.index ["municipality_code"], name: "index_blocks_on_municipality_code"
+  end
+
   create_table "cell_norms", force: :cascade do |t|
     t.string "h3", null: false
     t.bigint "norm_scenario_id", null: false
@@ -87,6 +111,17 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_30_000001) do
     t.integer "municipality_code", null: false
     t.integer "show_id"
     t.index ["geometry"], name: "index_cells_on_geometry", using: :gist
+  end
+
+  create_table "info_blocks", force: :cascade do |t|
+    t.integer "block_id", null: false
+    t.string "opportunity_code"
+    t.integer "units"
+    t.integer "surface"
+    t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
+    t.index ["block_id"], name: "index_info_blocks_on_block_id"
+    t.index ["opportunity_code"], name: "index_info_blocks_on_opportunity_code"
   end
 
   create_table "info_cells", force: :cascade do |t|
@@ -270,7 +305,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_30_000001) do
     t.integer "municipality_code", null: false
     t.datetime "created_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
     t.datetime "updated_at", default: -> { "CURRENT_TIMESTAMP" }, null: false
-    t.index ["municipality_code", "opportunity_code", "mode_code"], name: "idx_visual_modes_unique_combo", unique: true
+    t.boolean "is_block", default: false, null: false
+    t.index ["municipality_code", "opportunity_code", "mode_code", "is_block"], name: "idx_visual_modes_unique_combo", unique: true
   end
 
   add_foreign_key "accessibilities", "cells", column: "h3", primary_key: "h3"
@@ -281,9 +317,14 @@ ActiveRecord::Schema[7.1].define(version: 2026_04_30_000001) do
   add_foreign_key "availabilities", "municipalities", column: "municipality_code", primary_key: "municipality_code"
   add_foreign_key "availabilities", "users"
   add_foreign_key "bins", "visual_modes"
+  add_foreign_key "block_accessibilities", "blocks", primary_key: "block_id"
+  add_foreign_key "block_accessibilities", "opportunities", column: "opportunity_code", primary_key: "opportunity_code"
+  add_foreign_key "blocks", "municipalities", column: "municipality_code", primary_key: "municipality_code"
   add_foreign_key "cell_norms", "cells", column: "h3", primary_key: "h3"
   add_foreign_key "cell_norms", "scenarios", column: "norm_scenario_id"
   add_foreign_key "cells", "municipalities", column: "municipality_code", primary_key: "municipality_code"
+  add_foreign_key "info_blocks", "blocks", primary_key: "block_id"
+  add_foreign_key "info_blocks", "opportunities", column: "opportunity_code", primary_key: "opportunity_code"
   add_foreign_key "info_cells", "cells", column: "h3", primary_key: "h3"
   add_foreign_key "info_cells", "opportunities", column: "opportunity_code", primary_key: "opportunity_code"
   add_foreign_key "model_parameters", "municipalities", column: "municipality_code", primary_key: "municipality_code"
