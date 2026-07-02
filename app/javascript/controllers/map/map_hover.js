@@ -286,6 +286,87 @@ export class MapHover {
     this._clearCellsHover = clearHover
   }
 
+  bindBlocksHoverTooltip() {
+    if (this._blocksHoverBound) return
+    this._blocksHoverBound = true
+
+    let hoveredId = null
+    let tooltipDiv = null
+
+    const ensureTooltip = () => {
+      if (tooltipDiv) return tooltipDiv
+      tooltipDiv = document.createElement("div")
+      tooltipDiv.className = "cell-tooltip"
+      tooltipDiv.style.position = "absolute"
+      tooltipDiv.style.backgroundColor = "rgba(17, 24, 39, 0.95)"
+      tooltipDiv.style.color = "#fff"
+      tooltipDiv.style.padding = "8px 12px"
+      tooltipDiv.style.borderRadius = "10px"
+      tooltipDiv.style.fontWeight = "500"
+      tooltipDiv.style.fontSize = "13px"
+      tooltipDiv.style.fontFamily = "'Inter', ui-sans-serif, system-ui, sans-serif"
+      tooltipDiv.style.pointerEvents = "none"
+      tooltipDiv.style.whiteSpace = "nowrap"
+      tooltipDiv.style.boxShadow = "0 8px 20px rgba(0,0,0,0.22)"
+      this.map.getContainer().appendChild(tooltipDiv)
+      return tooltipDiv
+    }
+
+    const moveTooltip = (lngLat) => {
+      if (!tooltipDiv) return
+      const p = this.map.project(lngLat)
+      tooltipDiv.style.left = `${p.x + 12}px`
+      tooltipDiv.style.top = `${p.y - 56}px`
+    }
+
+    const clearHover = () => {
+      this.map.getCanvas().style.cursor = ""
+      if (tooltipDiv) { tooltipDiv.remove(); tooltipDiv = null }
+      if (hoveredId !== null) {
+        this.map.setFeatureState({ source: "blocks", id: hoveredId }, { hover: false })
+        hoveredId = null
+      }
+    }
+
+    this.map.on("mouseenter", "blocks-fill", () => {
+      this.map.getCanvas().style.cursor = "pointer"
+    })
+
+    this.map.on("mousemove", "blocks-fill", (e) => {
+      const f = e.features && e.features[0]
+      if (!f) return
+
+      const id = f.id ?? f.properties?.block_id
+      if (id == null) return
+
+      if (hoveredId !== null && hoveredId !== id) {
+        this.map.setFeatureState({ source: "blocks", id: hoveredId }, { hover: false })
+      }
+      hoveredId = id
+      this.map.setFeatureState({ source: "blocks", id: hoveredId }, { hover: true })
+
+      const el = ensureTooltip()
+      const label = this.currentCellsHoverLabel()
+      const layerType = this.controller?._selectedLayerType
+      const klass = Number(f.properties?.class ?? 0)
+      const rawValue = f.properties?.value ?? 0
+
+      let formatted
+      if (layerType === "accessibility" || layerType === "attractivity") {
+        formatted = this.controller.legend?.accessibilityLabelForClass
+          ? this.controller.legend.accessibilityLabelForClass(klass)
+          : (klass ? String(klass) : "-")
+      } else {
+        formatted = Number(rawValue).toLocaleString("es-CL")
+      }
+
+      el.textContent = `${label}: ${formatted}`
+      moveTooltip(e.lngLat)
+    })
+
+    this.map.on("mouseleave", "blocks-fill", clearHover)
+  }
+
   bindLocatorOverlayHoverTooltip() {
     if (this._locatorOverlayHoverBound) return
     this._locatorOverlayHoverBound = true

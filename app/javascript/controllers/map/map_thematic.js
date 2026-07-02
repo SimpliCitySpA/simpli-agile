@@ -81,11 +81,15 @@ export class MapThematic {
   }
 
   async loadCellsThematic({ municipalityCode, scenarioId, opportunityCode, metric }) {
+    if (this.ctx._useBlocksView) {
+      return this._loadBlocksThematic({ municipalityCode, opportunityCode, metric })
+    }
+
     this.ctx.ensureCellsLayer()
 
     const url =
       `/cells/thematic?municipality_code=${encodeURIComponent(municipalityCode)}` +
-      `&scenario_id=${encodeURIComponent(scenarioId)}` +               // ✅ NUEVO
+      `&scenario_id=${encodeURIComponent(scenarioId)}` +
       `&opportunity_code=${encodeURIComponent(opportunityCode)}` +
       `&metric=${encodeURIComponent(metric)}`
 
@@ -98,7 +102,39 @@ export class MapThematic {
 
     this.ctx._cellsBreaks = payload.breaks
     this.ctx._cellsFeatures = payload.features
+    this.ctx.setBlocksVisible(false)
     this.ctx.setCellsVisible(true)
+
+    if (!this.ctx._hasFitCells) {
+      this.ctx.fitToCellsBounds(payload.features)
+      this.ctx._hasFitCells = true
+    }
+
+    this.ctx.legend.render()
+    this.ctx.legend.showButtonIfNeeded()
+    this.ctx.legend.show()
+    if (this.ctx.dashboard && !this.ctx.dashboardPanelTarget?.hidden) this.ctx.dashboard.render()
+  }
+
+  async _loadBlocksThematic({ municipalityCode, opportunityCode, metric }) {
+    const url =
+      `/blocks/thematic?municipality_code=${encodeURIComponent(municipalityCode)}` +
+      `&opportunity_code=${encodeURIComponent(opportunityCode)}` +
+      `&metric=${encodeURIComponent(metric)}`
+
+    const resp = await dataFetch(url)
+    if (!resp.ok) {
+      console.error(`[blocks/thematic] Error ${resp.status}:`, await resp.text())
+      return
+    }
+    const payload = await resp.json()
+
+    this.ctx.ensureBlocksLayer()
+    this.ctx.map.getSource("blocks").setData({ type: "FeatureCollection", features: payload.features || [] })
+    this.ctx._cellsBreaks = payload.breaks
+    this.ctx._cellsFeatures = payload.features
+    this.ctx.setCellsVisible(false)
+    this.ctx.setBlocksVisible(true)
 
     if (!this.ctx._hasFitCells) {
       this.ctx.fitToCellsBounds(payload.features)

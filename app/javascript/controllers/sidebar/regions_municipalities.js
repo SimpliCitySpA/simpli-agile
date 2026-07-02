@@ -1,4 +1,5 @@
 // app/javascript/controllers/sidebar/regions_municipalities.js
+import { fetchAvailable } from "controllers/available_municipalities"
 
 export function createRegionsMunicipalities(controller) {
   return {
@@ -29,21 +30,18 @@ export function createRegionsMunicipalities(controller) {
     },
 
     loadRegionsIntoSelect() {
-      fetch('/regions/names')
-        .then(response => response.json())
-        .then(data => {
+      Promise.all([fetch('/regions/names').then(r => r.json()), fetchAvailable()])
+        .then(([data, available]) => {
           const selector = controller.regionSelectTarget
-
           selector.innerHTML = "<option>Seleccionar región...</option>"
-
-          // TEMPORAL: solo mostrar La Araucanía
-          const filteredRegions = data.filter(r => String(r.region_code) === "9")
-          filteredRegions.forEach(region => {
-            const option = document.createElement("option")
-            option.value = region.region_code
-            option.textContent = region.name
-            selector.appendChild(option)
-          })
+          data
+            .filter(r => available.regionCodes.includes(String(r.region_code)))
+            .forEach(region => {
+              const option = document.createElement("option")
+              option.value = region.region_code
+              option.textContent = region.name
+              selector.appendChild(option)
+            })
         })
         .catch(error => console.error("Error al cargar las regiones:", error))
     },
@@ -71,9 +69,8 @@ export function createRegionsMunicipalities(controller) {
         if (controller.hasRegionBackBtnTarget) controller.regionBackBtnTarget.disabled = true
       }
 
-      fetch(url)
-        .then(response => response.json())
-        .then(data => {
+      Promise.all([fetch(url).then(r => r.json()), fetchAvailable()])
+        .then(([data, available]) => {
           const selector = controller.municipalitySelectTarget
           const preSelected = selector.value &&
             !selector.value.includes("Seleccionar") &&
@@ -81,15 +78,15 @@ export function createRegionsMunicipalities(controller) {
             ? selector.value : null
           selector.innerHTML = "<option>Seleccionar comuna...</option>"
 
-          // TEMPORAL: solo mostrar Pucón
-          const filteredMunicipalities = data.filter(m => String(m.municipality_code) === "9115")
-          filteredMunicipalities.forEach(municipality => {
-            const option = document.createElement("option")
-            option.value = municipality.municipality_code
-            option.textContent = municipality.name
-            option.dataset.hasNormative = municipality.has_normative ? "true" : "false"
-            selector.appendChild(option)
-          })
+          data
+            .filter(m => available.municipalityCodes.includes(String(m.municipality_code)))
+            .forEach(municipality => {
+              const option = document.createElement("option")
+              option.value = municipality.municipality_code
+              option.textContent = municipality.name
+              option.dataset.hasNormative = municipality.has_normative ? "true" : "false"
+              selector.appendChild(option)
+            })
 
           // Restore pre-selected value if sidebar was pre-rendered in municipality state
           if (preSelected) selector.value = preSelected

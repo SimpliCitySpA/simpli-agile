@@ -55,8 +55,42 @@ export class MapThematicRunners {
       return
     }
 
-    const scenarioId = this.c._selectedScenarioId
     const accType = this.c._selectedAccessibilityType || "surface"
+
+    if (this.c._useBlocksView) {
+      const url =
+        `/blocks/accessibility?municipality_code=${encodeURIComponent(this.c._selectedMunicipalityCode)}` +
+        `&mode=${encodeURIComponent(mode)}` +
+        `&opportunity_code=${encodeURIComponent(this.c._selectedOpportunityCode)}` +
+        `&accessibility_type=${encodeURIComponent(accType)}`
+
+      const resp = await dataFetch(url)
+      if (!resp.ok) {
+        console.error(`[blocks/accessibility] Error ${resp.status}:`, await resp.text())
+        return
+      }
+      const fc = await resp.json()
+
+      this.c.ensureBlocksLayer()
+      this.c.map.getSource("blocks").setData({ type: "FeatureCollection", features: fc.features || [] })
+      this.c._cellsBreaks = fc.breaks
+      this.c._cellsFeatures = fc.features
+      this.c.setCellsVisible(false)
+      this.c.setBlocksVisible(true)
+
+      if (!this.c._hasFitCells) {
+        this.c.fitToCellsBounds(fc.features)
+        this.c._hasFitCells = true
+      }
+
+      this.c.legend.render()
+      this.c.legend.showButtonIfNeeded()
+      this.c.legend.show()
+      if (this.c.dashboard && !this.c.dashboardPanelTarget?.hidden) this.c.dashboard.render()
+      return
+    }
+
+    const scenarioId = this.c._selectedScenarioId
 
     const url =
       `/cells/accessibility?municipality_code=${encodeURIComponent(this.c._selectedMunicipalityCode)}` +

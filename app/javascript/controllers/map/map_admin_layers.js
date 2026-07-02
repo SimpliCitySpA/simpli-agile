@@ -1,4 +1,5 @@
 import { dataFetch } from "controllers/sidebar/api"
+import { fetchAvailable, getAvailable } from "controllers/available_municipalities"
 
 export class MapAdminLayers {
   constructor(controller) {
@@ -87,16 +88,13 @@ export class MapAdminLayers {
       })
     }
 
-    // TEMPORAL: Pucón (9115) verde, resto gris
-    const munActiveColor = ["==", ["to-string", ["get", "municipality_code"]], "9115"]
-
     if (!map.getLayer("municipalities-fill")) {
       map.addLayer({
         id: "municipalities-fill",
         type: "fill",
         source: "municipalities",
         paint: {
-          "fill-color": ["case", munActiveColor, "#2bf89a", "#9ca3af"],
+          "fill-color": "#9ca3af",
           "fill-opacity": 0.25
         }
       })
@@ -108,7 +106,7 @@ export class MapAdminLayers {
         type: "line",
         source: "municipalities",
         paint: {
-          "line-color": ["case", munActiveColor, "#1cb66e", "#6b7280"],
+          "line-color": "#6b7280",
           "line-width": 2
         }
       })
@@ -121,15 +119,32 @@ export class MapAdminLayers {
         source: "municipalities",
         paint: {
           "fill-color": "#2bf89a",
-          "fill-opacity": [
-            "case",
-            ["all", munActiveColor, ["boolean", ["feature-state", "hover"], false]],
-            0.3,
-            0
-          ]
+          "fill-opacity": 0
         }
       })
     }
+
+    // Update colors once available data resolves
+    fetchAvailable().then(available => {
+      const munActiveColor = available.municipalityCodes.length > 0
+        ? ["in", ["to-string", ["get", "municipality_code"]], ["literal", available.municipalityCodes]]
+        : ["boolean", false]
+
+      if (map.getLayer("municipalities-fill")) {
+        map.setPaintProperty("municipalities-fill", "fill-color", ["case", munActiveColor, "#2bf89a", "#9ca3af"])
+      }
+      if (map.getLayer("municipalities-outline")) {
+        map.setPaintProperty("municipalities-outline", "line-color", ["case", munActiveColor, "#1cb66e", "#6b7280"])
+      }
+      if (map.getLayer("municipalities-hover")) {
+        map.setPaintProperty("municipalities-hover", "fill-opacity", [
+          "case",
+          ["all", munActiveColor, ["boolean", ["feature-state", "hover"], false]],
+          0.3,
+          0
+        ])
+      }
+    })
 
     ;["municipalities-fill", "municipalities-outline", "municipalities-hover"].forEach((id) => {
       if (map.getLayer(id)) map.setLayoutProperty(id, "visibility", "none")
@@ -210,78 +225,80 @@ export class MapAdminLayers {
     }
   }
 
-  loadRegionsIntoMap() {
-    fetch("/regions")
-      .then(r => r.json())
-      .then((fc) => {
-        const map = this.c.map
+  async loadRegionsIntoMap() {
+    try {
+      const [fc, available] = await Promise.all([
+        fetch("/regions").then(r => r.json()),
+        fetchAvailable()
+      ])
+      const map = this.c.map
 
-        if (!Array.isArray(fc.features)) {
-          console.error("GeoJSON inválido en /regions", fc)
-          return
-        }
+      if (!Array.isArray(fc.features)) {
+        console.error("GeoJSON inválido en /regions", fc)
+        return
+      }
 
-        if (map.getSource("regions")) {
-          map.getSource("regions").setData(fc)
-        } else {
-          map.addSource("regions", { type: "geojson", data: fc, promoteId: "region_code"})
-        }
+      if (map.getSource("regions")) {
+        map.getSource("regions").setData(fc)
+      } else {
+        map.addSource("regions", { type: "geojson", data: fc, promoteId: "region_code" })
+      }
 
-        // TEMPORAL: Araucanía (9) verde, resto gris
-        const regionActiveColor = ["==", ["to-string", ["get", "region_code"]], "9"]
+      const regionActiveColor = available.regionCodes.length > 0
+        ? ["in", ["to-string", ["get", "region_code"]], ["literal", available.regionCodes]]
+        : ["boolean", false]
 
-        if (!map.getLayer("regions-fill")) {
-          map.addLayer({
-            id: "regions-fill",
-            type: "fill",
-            source: "regions",
-            paint: {
-              "fill-color": ["case", regionActiveColor, "#2bf89a", "#9ca3af"],
-              "fill-opacity": 0.5
-            }
-          })
-        }
+      if (!map.getLayer("regions-fill")) {
+        map.addLayer({
+          id: "regions-fill",
+          type: "fill",
+          source: "regions",
+          paint: {
+            "fill-color": ["case", regionActiveColor, "#2bf89a", "#9ca3af"],
+            "fill-opacity": 0.5
+          }
+        })
+      }
 
-        if (!map.getLayer("regions-outline")) {
-          map.addLayer({
-            id: "regions-outline",
-            type: "line",
-            source: "regions",
-            paint: {
-              "line-color": ["case", regionActiveColor, "#1cb66e", "#6b7280"],
-              "line-width": 2
-            }
-          })
-        }
+      if (!map.getLayer("regions-outline")) {
+        map.addLayer({
+          id: "regions-outline",
+          type: "line",
+          source: "regions",
+          paint: {
+            "line-color": ["case", regionActiveColor, "#1cb66e", "#6b7280"],
+            "line-width": 2
+          }
+        })
+      }
 
-        if (!map.getLayer("regions-hover")) {
-          map.addLayer({
-            id: "regions-hover",
-            type: "fill",
-            source: "regions",
-            paint: {
-              "fill-color": "#2bf89a",
-              "fill-opacity": [
-                "case",
-                ["all", regionActiveColor, ["boolean", ["feature-state", "hover"], false]],
-                0.3,
-                0
-              ]
-            }
-          })
-        }
+      if (!map.getLayer("regions-hover")) {
+        map.addLayer({
+          id: "regions-hover",
+          type: "fill",
+          source: "regions",
+          paint: {
+            "fill-color": "#2bf89a",
+            "fill-opacity": [
+              "case",
+              ["all", regionActiveColor, ["boolean", ["feature-state", "hover"], false]],
+              0.3,
+              0
+            ]
+          }
+        })
+      }
 
-        this.c.hover.bindRegionsHoverTooltip()
+      this.c.hover.bindRegionsHoverTooltip()
 
-        // If the page loaded with a default municipality (server-rendered or already selected),
-        // hide regions immediately so they don't flash before municipalityChanged runs.
-        const hasDefaultMunicipality = !!document.querySelector("[data-sidebar-default-municipality-value]")
-          ?.dataset?.sidebarDefaultMunicipalityValue
-        if (this.c._selectedMunicipalityCode || hasDefaultMunicipality) {
-          this.setRegionsVisible(false)
-        }
-      })
-      .catch(err => console.error("Error cargando regiones:", err))
+      const hasDefaultMunicipality = !!document.querySelector("[data-sidebar-default-municipality-value]")
+        ?.dataset?.sidebarDefaultMunicipalityValue
+      if (this.c._selectedMunicipalityCode || hasDefaultMunicipality) {
+        this.setRegionsVisible(false)
+      }
+    } catch (err) {
+      console.error("Error cargando regiones:", err)
+    }
   }
 
   bindRegionsClick() {
@@ -295,8 +312,7 @@ export class MapAdminLayers {
       const regionCode = f.properties?.region_code
       if (!regionCode) return
 
-      // TEMPORAL: solo permitir click en La Araucanía
-      if (String(regionCode) !== "9") return
+      if (!getAvailable().regionCodes.includes(String(regionCode))) return
 
       window.dispatchEvent(new CustomEvent("region:clicked", {
         detail: { region_code: regionCode }
@@ -315,8 +331,7 @@ export class MapAdminLayers {
       const munCode = f.properties?.municipality_code
       if (!munCode) return
 
-      // TEMPORAL: solo permitir click en Pucón
-      if (String(munCode) !== "9115") return
+      if (!getAvailable().municipalityCodes.includes(String(munCode))) return
 
       window.dispatchEvent(new CustomEvent("municipality:clicked", {
         detail: { municipality_code: munCode }
@@ -536,6 +551,7 @@ export class MapAdminLayers {
       "municipality-mask-fill",
       "selected-municipality-outline",
       "cells-fill", "cells-outline", "cells-hover", "cells-project-outline",
+      "blocks-fill", "blocks-outline", "blocks-hover",
       "study-area-glow", "study-area-line",
       "cells-parent-fill", "cells-draft-hatch"
     ]
@@ -571,12 +587,13 @@ export class MapAdminLayers {
 
   applyStreetsOnTop(enabled) {
     const map = this.c.map
-    // Order from bottom to top: municipalities → municipality-outline → cells → study-area → locator
+    // Order from bottom to top: municipalities → municipality-outline → cells/blocks → study-area → locator
     const layers = [
       "municipalities-fill", "municipalities-outline", "municipalities-hover",
       "municipality-mask-fill",
       "selected-municipality-outline",
       "cells-fill", "cells-outline", "cells-hover", "cells-project-outline",
+      "blocks-fill", "blocks-outline", "blocks-hover",
       "study-area-glow", "study-area-line",
       "cells-parent-fill", "cells-draft-hatch"
     ]

@@ -21,6 +21,7 @@ Rails.application.routes.draw do
     collection do
       get :names
       get :focus
+      get :available
       get :base_scenario
       get :access
       get :co2
@@ -36,6 +37,13 @@ Rails.application.routes.draw do
       get :accessibility_delta
       get :locator_status
       get :normative
+    end
+  end
+
+  resources :blocks, only: [] do
+    collection do
+      get :thematic
+      get :accessibility
     end
   end
 

@@ -82,6 +82,7 @@ export default class extends Controller {
     "agentInputsContainer",
     "agentInput",
     "streetsOnTopBtn",
+    "blocksViewBtn",
     "scenarioParentInfo",
     "scenarioParentName",
   ]
@@ -280,6 +281,14 @@ export default class extends Controller {
     btn.classList.toggle("is-active", enabled)
     window.dispatchEvent(new CustomEvent("map:streets-on-top", { detail: { enabled } }))
     trackEvent("streets_changed", { enabled })
+  }
+
+  toggleBlocksView() {
+    const btn = this.blocksViewBtnTarget
+    const enabled = btn.getAttribute("aria-pressed") !== "true"
+    btn.setAttribute("aria-pressed", String(enabled))
+    btn.classList.toggle("is-active", enabled)
+    window.dispatchEvent(new CustomEvent("map:blocks-view-toggled", { detail: { enabled } }))
   }
 
   selectPalette(e) {

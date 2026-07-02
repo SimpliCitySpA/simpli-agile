@@ -160,16 +160,22 @@ class Co2Calculator
   end
 
   def fetch_distance_rows(mun_code)
+    car_mode = TravelMode.find_by(municipality_code: mun_code, mode: "car")
+    unless car_mode
+      Rails.logger.warn("Co2Calculator: no car travel_mode for municipality #{mun_code}")
+      return []
+    end
+
     sql = <<~SQL
       SELECT tt.h3_origin, tt.h3_destiny, tt.distance
       FROM travel_times tt
       JOIN cells c ON c.h3 = tt.h3_origin
-      WHERE tt.travel_mode_id = 2
+      WHERE tt.travel_mode_id = $2
         AND c.municipality_code = $1
         AND tt.distance IS NOT NULL
     SQL
     conn = ActiveRecord::Base.connection.raw_connection
-    conn.exec_params(sql, [mun_code]).to_a
+    conn.exec_params(sql, [mun_code, car_mode.id]).to_a
   end
 
   def fetch_cell_data

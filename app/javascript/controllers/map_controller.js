@@ -4,6 +4,7 @@ import { MapHover } from "controllers/map/map_hover"
 import { MapThematic } from "controllers/map/map_thematic"
 import { MapLegend } from "controllers/map/map_legend"
 import { MapCellsLayer } from "controllers/map/map_cells_layer"
+import { MapBlocksLayer } from "controllers/map/map_blocks_layer"
 import { MapAdminLayers } from "controllers/map/map_admin_layers"
 import { MapLocator } from "controllers/map/map_locator"
 import { MapStateEvents } from "controllers/map/map_state_events"
@@ -90,6 +91,7 @@ export default class extends Controller {
       this.thematicLayer = new MapThematic(this)
       this.legend = new MapLegend(this)
       this.cellsLayer = new MapCellsLayer(this)
+      this.blocksLayer = new MapBlocksLayer(this)
       this.adminLayers = new MapAdminLayers(this)
       this.locator = new MapLocator(this)
       this.stateEvents = new MapStateEvents(this)
@@ -130,6 +132,7 @@ export default class extends Controller {
       window.addEventListener("map:style-selected", this.onStyleSelected)
       window.addEventListener("map:palette-selected", this.onPaletteSelected)
       window.addEventListener("map:streets-on-top", this.onStreetsOnTopToggled)
+      window.addEventListener("map:blocks-view-toggled", this.onBlocksViewToggled)
       window.addEventListener("co2:refresh", this.onCo2Refresh)
       window.addEventListener("municipality:features_loaded", this.onMunicipalityFeaturesLoaded)
 
@@ -194,6 +197,40 @@ export default class extends Controller {
   }
 
   onStyleSelected = (e) => this.styleManager?.select(e.detail.styleId)
+  onBlocksViewToggled = (e) => {
+    this._useBlocksView = e.detail.enabled
+
+    if (!e.detail.enabled) {
+      this.setBlocksVisible(false)
+      if (this._selectedLayerType === "accessibility" && this._selectedMunicipalityCode && this._selectedOpportunityCode && this._selectedAccessibilityMode) {
+        window.dispatchEvent(new CustomEvent("accessibility:mode_selected", {
+          detail: { mode: this._selectedAccessibilityMode }
+        }))
+      } else if (this._selectedLayerType === "thematic" && this._selectedMunicipalityCode && this._selectedOpportunityCode && this._selectedMetric) {
+        window.dispatchEvent(new CustomEvent("layer:selected", {
+          detail: { metric: this._selectedMetric }
+        }))
+      }
+      return
+    }
+
+    this.setCellsVisible(false)
+
+    if (this._selectedLayerType === "accessibility" && this._selectedMunicipalityCode && this._selectedOpportunityCode && this._selectedAccessibilityMode) {
+      window.dispatchEvent(new CustomEvent("accessibility:mode_selected", {
+        detail: { mode: this._selectedAccessibilityMode }
+      }))
+    } else if (this._selectedLayerType === "thematic" && this._selectedMunicipalityCode && this._selectedOpportunityCode && this._selectedMetric) {
+      window.dispatchEvent(new CustomEvent("layer:selected", {
+        detail: { metric: this._selectedMetric }
+      }))
+    } else {
+      console.warn("[Vista Manzanas] activo — selecciona Superficie, Unidades o Accesibilidad Absoluta.", {
+        layerType: this._selectedLayerType
+      })
+    }
+  }
+
   onStreetsOnTopToggled = (e) => {
     this._streetsOnTop = e.detail.enabled
     this.adminLayers?.applyStreetsOnTop(e.detail.enabled)
@@ -228,6 +265,9 @@ export default class extends Controller {
   setCellsVisible = (visible) => this.cellsLayer.setVisible(visible)
   ensureCellsLayer = () => this.cellsLayer.ensure()
   ensureLocatorLayers = () => this.cellsLayer.ensureLocatorOverlays()
+
+  setBlocksVisible = (visible) => this.blocksLayer.setVisible(visible)
+  ensureBlocksLayer = () => this.blocksLayer.ensure()
 
   toggleLegend = () => this.legend.toggle()
   toggleDashboard = () => this.dashboard.toggle()
