@@ -140,6 +140,79 @@ class BlocksController < ApplicationController
     render json: { type: "FeatureCollection", features: features, breaks: breaks }
   end
 
+  def attractivity
+    mun_code = params.require(:municipality_code).to_i
+    mode     = params.require(:mode).to_s
+    opp_code = params.require(:opportunity_code).to_s
+
+    unless %w[walk car].include?(mode)
+      return render json: { error: "mode debe ser 'walk' o 'car'" }, status: :unprocessable_entity
+    end
+
+    opp_acc_type = Opportunity.find_by(opportunity_code: opp_code)&.category == "POI" ? "units" : "surface"
+
+    fetch_acc = ->(opp, acc_type) {
+      BlockAccessibility
+        .where(travel_mode: mode, opportunity_code: opp, accessibility_type: acc_type)
+        .joins(:block)
+        .where(blocks: { municipality_code: mun_code })
+        .pluck(:block_id, :value)
+        .to_h
+    }
+
+    opp_h = fetch_acc.(opp_code, opp_acc_type)
+    hc_h  = fetch_acc.("HC", "units")
+    hd_h  = fetch_acc.("HD", "units")
+    p_h   = fetch_acc.("P",  "units")
+
+    attractivity_val = ->(block_id) {
+      denom = hc_h[block_id].to_f + hd_h[block_id].to_f + p_h[block_id].to_f
+      return 0.0 if denom <= 0
+      opp_h[block_id].to_f / denom
+    }
+
+    external_breaks = params[:breaks]&.split(",")&.map(&:to_f)
+
+    conn = ActiveRecord::Base.connection.raw_connection
+    rows_result = conn.exec_params(<<~SQL, [mun_code])
+      SELECT block_id, show_id, ST_AsGeoJSON(geometry) AS geom_json
+      FROM blocks
+      WHERE municipality_code = $1
+    SQL
+
+    block_ids = rows_result.map { |r| r["block_id"].to_i }
+
+    breaks = if external_breaks&.length == 6
+      external_breaks
+    else
+      all_vals    = block_ids.map { |id| attractivity_val.(id) }
+      nonzero     = all_vals.select { |v| v > 0 }
+      nonzero.length >= 5 ? jenks_breaks(nonzero, 5) : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    end
+
+    features = rows_result.map do |r|
+      block_id = r["block_id"].to_i
+      v        = attractivity_val.(block_id)
+      klass    = bin_class(v, breaks)
+
+      {
+        type: "Feature",
+        geometry: JSON.parse(r["geom_json"]),
+        properties: {
+          block_id: block_id,
+          show_id: r["show_id"]&.to_i,
+          value: v.round(6),
+          class: klass,
+          municipality_code: mun_code,
+          mode: mode,
+          opportunity_code: opp_code
+        }
+      }
+    end
+
+    render json: { type: "FeatureCollection", features: features, breaks: breaks }
+  end
+
   private
 
   def bin_class(value, edges)
@@ -152,5 +225,60 @@ class BlocksController < ApplicationController
       return k if v <= edges[k]
     end
     n
+  end
+
+  def jenks_breaks(data, k)
+    data = data.compact.map(&:to_f).sort
+    n = data.length
+    k = [[k, 1].max, n].min
+
+    mat1 = Array.new(n + 1) { Array.new(k + 1, 0) }
+    mat2 = Array.new(n + 1) { Array.new(k + 1, 0.0) }
+
+    (1..k).each do |j|
+      mat1[0][j] = 1
+      mat2[0][j] = 0.0
+      (1..n).each { |i| mat2[i][j] = Float::INFINITY }
+    end
+
+    v = 0.0
+
+    (1..n).each do |l|
+      s1 = s2 = w = 0.0
+      (1..l).each do |m|
+        i3 = l - m + 1
+        val = data[i3 - 1]
+        s2 += val * val
+        s1 += val
+        w += 1
+        v = s2 - (s1 * s1) / w
+        i4 = i3 - 1
+        next if i4 < 0
+
+        (2..k).each do |j|
+          if mat2[l][j] >= (v + mat2[i4][j - 1])
+            mat1[l][j] = i3
+            mat2[l][j] = v + mat2[i4][j - 1]
+          end
+        end
+      end
+      mat1[l][1] = 1
+      mat2[l][1] = v
+    end
+
+    breaks = Array.new(k + 1, 0.0)
+    breaks[k] = data[-1]
+    count = k
+    idx = n
+
+    while count > 1
+      id = mat1[idx][count] - 1
+      breaks[count - 1] = data[id]
+      idx = mat1[idx][count] - 1
+      count -= 1
+    end
+
+    breaks[0] = data[0]
+    breaks
   end
 end

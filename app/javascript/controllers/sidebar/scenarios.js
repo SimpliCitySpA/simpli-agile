@@ -131,6 +131,21 @@ export function createScenarios(controller) {
       }
 
       controller.refreshProjectsLists()
+      controller.scenarios.syncBlocksViewToggle()
+    },
+
+    syncBlocksViewToggle() {
+      if (!controller.hasBlocksViewBtnTarget) return
+      const btn = controller.blocksViewBtnTarget
+      const isBase = controller._selectedScenarioIsBase
+
+      btn.disabled = !isBase
+
+      if (!isBase && btn.getAttribute("aria-pressed") === "true") {
+        btn.setAttribute("aria-pressed", "false")
+        btn.classList.remove("is-active")
+        window.dispatchEvent(new CustomEvent("map:blocks-view-toggled", { detail: { enabled: false } }))
+      }
     },
 
     openCreateScenarioModal() {

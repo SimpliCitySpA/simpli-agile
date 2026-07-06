@@ -26,6 +26,7 @@ export class MapStateEvents {
       this.c.dashboard?.hide()
     }
     this.c.setCellsVisible(false)
+    this.c.setBlocksVisible(false)
 
     const useSlider = (this.c._uiMode === "comparador" && this.c._compareMode === "slider")
     this.c.compareSlider?.setEnabled(useSlider)
@@ -83,6 +84,10 @@ export class MapStateEvents {
   }
 
   onLayerCleared = () => {
+    // Invalida cualquier fetch de manzanas/celdas en curso: si llega después de este
+    // punto, su handler comparará este número y descartará el resultado.
+    this.c._layerRequestGen = (this.c._layerRequestGen || 0) + 1
+
     this.c.setCellsVisible(false)
     this.c.setBlocksVisible(false)
 
