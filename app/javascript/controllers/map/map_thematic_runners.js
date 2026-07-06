@@ -58,6 +58,7 @@ export class MapThematicRunners {
     const accType = this.c._selectedAccessibilityType || "surface"
 
     if (this.c._useBlocksView) {
+      const gen = this.c._layerRequestGen
       const url =
         `/blocks/accessibility?municipality_code=${encodeURIComponent(this.c._selectedMunicipalityCode)}` +
         `&mode=${encodeURIComponent(mode)}` +
@@ -70,6 +71,9 @@ export class MapThematicRunners {
         return
       }
       const fc = await resp.json()
+
+      // La navegación cambió mientras el fetch estaba en curso: descartar respuesta obsoleta.
+      if (gen !== this.c._layerRequestGen) return
 
       this.c.ensureBlocksLayer()
       this.c.map.getSource("blocks").setData({ type: "FeatureCollection", features: fc.features || [] })

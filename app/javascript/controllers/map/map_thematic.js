@@ -117,6 +117,7 @@ export class MapThematic {
   }
 
   async _loadBlocksThematic({ municipalityCode, opportunityCode, metric }) {
+    const gen = this.ctx._layerRequestGen
     const url =
       `/blocks/thematic?municipality_code=${encodeURIComponent(municipalityCode)}` +
       `&opportunity_code=${encodeURIComponent(opportunityCode)}` +
@@ -128,6 +129,10 @@ export class MapThematic {
       return
     }
     const payload = await resp.json()
+
+    // La navegación cambió (volvimos atrás, cambiamos de comuna, etc.) mientras
+    // el fetch estaba en curso: descartar esta respuesta para no repintar manzanas obsoletas.
+    if (gen !== this.ctx._layerRequestGen) return
 
     this.ctx.ensureBlocksLayer()
     this.ctx.map.getSource("blocks").setData({ type: "FeatureCollection", features: payload.features || [] })
