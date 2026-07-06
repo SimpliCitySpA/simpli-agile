@@ -76,6 +76,7 @@ export class MapStyle {
     c.hover._regionsHoverBound = false
     c.hover._muniHoverBound = false
     c.hover._cellsHoverBound = false
+    c.hover._blocksHoverBound = false
     c._regionsClickBound = false
     c._municipalitiesClickBound = false
 
@@ -101,6 +102,10 @@ export class MapStyle {
           scenario_id: c._selectedScenarioId
         }
       }))
+    } else if (c._cellsFeatures?.length && c._useBlocksView) {
+      c.blocksLayer.ensure(map)
+      map.getSource("blocks")?.setData({ type: "FeatureCollection", features: c._cellsFeatures })
+      c.setBlocksVisible(true)
     } else if (c._cellsFeatures?.length) {
       c.cellsLayer.ensure(map)
       map.getSource("cells")?.setData({ type: "FeatureCollection", features: c._cellsFeatures })

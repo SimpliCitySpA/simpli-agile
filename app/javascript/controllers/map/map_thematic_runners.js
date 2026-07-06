@@ -150,6 +150,41 @@ export class MapThematicRunners {
       return
     }
 
+    if (this.c._useBlocksView) {
+      const gen = this.c._layerRequestGen
+      const url =
+        `/blocks/attractivity?municipality_code=${encodeURIComponent(this.c._selectedMunicipalityCode)}` +
+        `&mode=${encodeURIComponent(mode)}` +
+        `&opportunity_code=${encodeURIComponent(this.c._selectedOpportunityCode)}`
+
+      const resp = await dataFetch(url)
+      if (!resp.ok) {
+        console.error(`[blocks/attractivity] Error ${resp.status}:`, await resp.text())
+        return
+      }
+      const fc = await resp.json()
+
+      if (gen !== this.c._layerRequestGen) return
+
+      this.c.ensureBlocksLayer()
+      this.c.map.getSource("blocks").setData({ type: "FeatureCollection", features: fc.features || [] })
+      this.c._cellsBreaks = fc.breaks
+      this.c._cellsFeatures = fc.features
+      this.c.setCellsVisible(false)
+      this.c.setBlocksVisible(true)
+
+      if (!this.c._hasFitCells) {
+        this.c.fitToCellsBounds(fc.features)
+        this.c._hasFitCells = true
+      }
+
+      this.c.legend.render()
+      this.c.legend.showButtonIfNeeded()
+      this.c.legend.show()
+      if (this.c.dashboard && !this.c.dashboardPanelTarget?.hidden) this.c.dashboard.render()
+      return
+    }
+
     const scenarioId = this.c._selectedScenarioId
 
     const url =

@@ -206,6 +206,10 @@ export default class extends Controller {
         window.dispatchEvent(new CustomEvent("accessibility:mode_selected", {
           detail: { mode: this._selectedAccessibilityMode }
         }))
+      } else if (this._selectedLayerType === "attractivity" && this._selectedMunicipalityCode && this._selectedOpportunityCode && this._selectedAccessibilityMode) {
+        window.dispatchEvent(new CustomEvent("attractivity:mode_selected", {
+          detail: { mode: this._selectedAccessibilityMode }
+        }))
       } else if (this._selectedLayerType === "thematic" && this._selectedMunicipalityCode && this._selectedOpportunityCode && this._selectedMetric) {
         window.dispatchEvent(new CustomEvent("layer:selected", {
           detail: { metric: this._selectedMetric }
@@ -218,6 +222,10 @@ export default class extends Controller {
 
     if (this._selectedLayerType === "accessibility" && this._selectedMunicipalityCode && this._selectedOpportunityCode && this._selectedAccessibilityMode) {
       window.dispatchEvent(new CustomEvent("accessibility:mode_selected", {
+        detail: { mode: this._selectedAccessibilityMode }
+      }))
+    } else if (this._selectedLayerType === "attractivity" && this._selectedMunicipalityCode && this._selectedOpportunityCode && this._selectedAccessibilityMode) {
+      window.dispatchEvent(new CustomEvent("attractivity:mode_selected", {
         detail: { mode: this._selectedAccessibilityMode }
       }))
     } else if (this._selectedLayerType === "thematic" && this._selectedMunicipalityCode && this._selectedOpportunityCode && this._selectedMetric) {
@@ -245,6 +253,7 @@ export default class extends Controller {
     const palette = e.detail.palette
     this._palette = palette
     this.cellsLayer?.applyPalette(palette)
+    this.blocksLayer?.applyPalette(palette)
     this.legend?.render()
     this.dashboard?.render()
   }

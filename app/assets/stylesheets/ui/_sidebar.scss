@@ -345,6 +345,18 @@
   opacity: 1;
 }
 
+.sidebar__tooltip--left {
+  left: auto;
+  right: 0;
+  transform: none;
+
+  &::after {
+    left: auto;
+    right: 8px;
+    transform: none;
+  }
+}
+
 .sidebar__row {
   display: flex;
   align-items: center;

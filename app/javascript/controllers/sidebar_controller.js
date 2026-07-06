@@ -83,6 +83,7 @@ export default class extends Controller {
     "agentInput",
     "streetsOnTopBtn",
     "blocksViewBtn",
+    "blocksViewBtnWrap",
     "scenarioParentInfo",
     "scenarioParentName",
   ]

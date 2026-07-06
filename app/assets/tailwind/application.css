@@ -587,6 +587,16 @@
     border-top-color: #18181b;
   }
 
+  .sidebar__tooltip--left {
+    left: auto;
+    right: 0;
+  }
+
+  .sidebar__tooltip--left::after {
+    left: auto;
+    right: 10px;
+  }
+
   .sidebar__tooltip-wrap:hover:has(button:disabled) .sidebar__tooltip { opacity: 1; }
 
   .sidebar__row {
@@ -815,6 +825,11 @@
   }
 
   .config-toggle-row:hover { color: #18181b; }
+
+  .config-toggle-row:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
 
   .config-toggle-track {
     position: relative;
