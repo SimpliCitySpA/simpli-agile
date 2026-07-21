@@ -277,6 +277,9 @@ export function createRegionsMunicipalities(controller) {
         if (controller.hasOpportunitySelectTarget) controller.opportunitySelectTarget.disabled = false
         if (controller.hasOpportunitySectionTarget) controller.opportunitySectionTarget.hidden = false
 
+        // Los indicadores son públicos: no requieren sesión ni Availability.
+        window.dispatchEvent(new CustomEvent("municipality:features_loaded", { detail: { features: ["indicators"] } }))
+
         fetch(`/municipalities/base_scenario?municipality_code=${encodeURIComponent(munCode)}`)
           .then(r => r.json())
           .then(data => {
@@ -302,8 +305,9 @@ export function createRegionsMunicipalities(controller) {
       fetch(`/municipalities/access?municipality_code=${encodeURIComponent(munCode)}`)
         .then(r => r.json())
         .then(data => {
+          // Los indicadores son públicos: se agregan siempre, independiente de Availability/sesión.
           const dispatchFeatures = (f) => window.dispatchEvent(
-            new CustomEvent("municipality:features_loaded", { detail: { features: f } })
+            new CustomEvent("municipality:features_loaded", { detail: { features: [...f, "indicators"] } })
           )
           if (data.has_access) {
             controller._hasAccess = true
@@ -321,7 +325,7 @@ export function createRegionsMunicipalities(controller) {
         })
         .catch(() => {
           controller._features = []
-          window.dispatchEvent(new CustomEvent("municipality:features_loaded", { detail: { features: [] } }))
+          window.dispatchEvent(new CustomEvent("municipality:features_loaded", { detail: { features: ["indicators"] } }))
           controller._loadGuestMunicipalityView(munCode)
         })
     }
